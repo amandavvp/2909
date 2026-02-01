@@ -6,7 +6,7 @@ import AccessibilityBar from "@/components/ui/AccessibilityBar";
 
 export const metadata: Metadata = {
   title: {
-    default: "Portal 2909 - Prefeitura de Belford Roxo",
+    default: "Portal 2909",
     template: "%s | Portal 2909",
   },
   description:
