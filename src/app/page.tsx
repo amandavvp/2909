@@ -1,63 +1,62 @@
 import Sidebar from "@/components/layout/Sidebar";
 import Banner from "@/components/ui/Banner";
-import { Download } from "lucide-react";
+import { Download, Clock, Smartphone, Phone } from "lucide-react";
+import Link from "next/link";
 
 export default function Home() {
   return (
     <div className="container-main py-8">
-      <div className="flex flex-col lg:flex-row gap-8">
+      <div className="flex flex-col lg:flex-row gap-6">
         {/* Sidebar com categorias */}
         <Sidebar />
 
         {/* Conteúdo principal */}
-        <div className="flex-1 space-y-8">
+        <div className="flex-1 space-y-6">
           {/* Banner/Carrossel */}
           <Banner />
 
-          {/* CTA - Cartilha do Cidadão */}
-          <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-neutral-100 to-neutral-200">
+          {/* CTA - Cartilha do Cidadão - estilo 1746 */}
+          <div 
+            className="relative overflow-hidden rounded-xl"
+            style={{ background: 'linear-gradient(to bottom, #dbeafe, #bfdbfe)' }}
+          >
             {/* Skyline decorativo */}
-            <div className="absolute inset-0 opacity-10">
-              <svg
-                viewBox="0 0 1200 200"
-                className="w-full h-full"
-                preserveAspectRatio="xMidYMax slice"
-              >
+            <div className="absolute inset-0 flex items-end justify-center opacity-20">
+              <svg viewBox="0 0 1200 100" className="w-full" preserveAspectRatio="xMidYMax slice">
                 <path
-                  d="M0,200 L0,150 L50,150 L50,100 L80,100 L80,130 L120,130 L120,80 L160,80 L160,150 L200,150 L200,120 L240,120 L240,150 L280,150 L280,90 L320,90 L320,150 L360,150 L360,70 L400,70 L400,150 L440,150 L440,110 L480,110 L480,150 L520,150 L520,60 L560,60 L560,150 L600,150 L600,100 L640,100 L640,150 L680,150 L680,80 L720,80 L720,150 L760,150 L760,130 L800,130 L800,150 L840,150 L840,90 L880,90 L880,150 L920,150 L920,70 L960,70 L960,150 L1000,150 L1000,110 L1040,110 L1040,150 L1080,150 L1080,140 L1120,140 L1120,150 L1160,150 L1160,120 L1200,120 L1200,200 Z"
-                  fill="currentColor"
-                  className="text-primary"
+                  d="M0,100 L0,65 L40,65 L40,40 L60,40 L60,55 L100,55 L100,30 L120,30 L120,65 L160,65 L160,50 L200,50 L200,65 L240,65 L240,35 L280,35 L280,65 L320,65 L320,20 L360,20 L360,65 L400,65 L400,45 L440,45 L440,65 L480,65 L480,15 L520,15 L520,65 L560,65 L560,50 L600,50 L600,65 L640,65 L640,35 L680,35 L680,65 L720,65 L720,55 L760,55 L760,65 L800,65 L800,40 L840,40 L840,65 L880,65 L880,28 L920,28 L920,65 L960,65 L960,45 L1000,45 L1000,65 L1040,65 L1040,58 L1080,58 L1080,65 L1120,65 L1120,50 L1160,50 L1160,65 L1200,65 L1200,100 Z"
+                  fill="#1748ae"
                 />
               </svg>
             </div>
 
             <div className="relative px-8 py-10 text-center">
-              <a
+              <Link
                 href="/cartilha-cidadao.pdf"
-                className="inline-flex items-center gap-3 px-6 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-primary-dark transition-colors"
+                className="cartilha-btn inline-flex items-center gap-3 px-8 py-4 text-white font-bold rounded-lg transition-colors shadow-lg"
               >
-                <Download size={20} />
+                <Download size={22} />
                 Baixe aqui a Cartilha ao Cidadão
-              </a>
+              </Link>
             </div>
           </div>
 
-          {/* Informações rápidas */}
+          {/* Cards de informações rápidas */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <QuickInfoCard
               title="Atendimento 24h"
               description="O portal está disponível 24 horas por dia, 7 dias por semana."
-              icon="🕐"
+              icon={<Clock size={32} className="text-primary" />}
             />
             <QuickInfoCard
               title="Acompanhe Online"
               description="Consulte o status de suas solicitações a qualquer momento."
-              icon="📱"
+              icon={<Smartphone size={32} className="text-primary" />}
             />
             <QuickInfoCard
               title="Ligue 2909"
-              description="Atendimento telefônico de segunda a sexta, das 8h às 18h."
-              icon="📞"
+              description="Atendimento telefônico de segunda a sexta, das 8h às 17h."
+              icon={<Phone size={32} className="text-primary" />}
             />
           </div>
         </div>
@@ -73,13 +72,13 @@ function QuickInfoCard({
 }: {
   title: string;
   description: string;
-  icon: string;
+  icon: React.ReactNode;
 }) {
   return (
-    <div className="bg-white rounded-lg p-6 shadow-card border border-neutral-100 hover:shadow-soft transition-shadow">
-      <div className="text-3xl mb-3">{icon}</div>
-      <h3 className="font-semibold text-neutral-800 mb-2">{title}</h3>
-      <p className="text-sm text-neutral-600">{description}</p>
+    <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
+      <div className="mb-4">{icon}</div>
+      <h3 className="font-bold text-lg text-gray-800 mb-2">{title}</h3>
+      <p className="text-sm text-gray-600 leading-relaxed">{description}</p>
     </div>
   );
 }

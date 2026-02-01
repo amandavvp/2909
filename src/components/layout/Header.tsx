@@ -2,15 +2,13 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { 
   Search, 
   Menu, 
   X, 
-  ChevronDown,
-  Sun,
   Moon,
-  ZoomIn,
-  ZoomOut
+  User
 } from "lucide-react";
 import { FontSize, ContrastMode } from "@/types";
 
@@ -32,7 +30,6 @@ export default function Header() {
   const [fontSize, setFontSize] = useState<FontSize>("normal");
   const [contrastMode, setContrastMode] = useState<ContrastMode>("normal");
 
-  // Aplicar configurações de acessibilidade
   useEffect(() => {
     const root = document.documentElement;
     root.classList.remove("font-size-normal", "font-size-large", "font-size-larger");
@@ -68,58 +65,59 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50">
-      {/* Barra superior com acessibilidade */}
-      <div className="bg-primary-dark">
+      {/* Header principal - azul igual ao site oficial de Belford Roxo */}
+      <div style={{ backgroundColor: '#1748ae' }}>
         <div className="container-main">
-          <div className="flex items-center justify-between h-12">
-            {/* Logo e título */}
-            <Link href="/" className="flex items-center gap-3">
-              <div className="flex items-center">
-                <span className="text-3xl font-bold text-white tracking-tight">2909</span>
-                <div className="ml-2 text-[10px] text-white/80 leading-tight">
-                  <div>CENTRAL DE</div>
-                  <div>ATENDIMENTO</div>
-                </div>
-              </div>
-              <div className="hidden sm:block h-8 w-px bg-white/20 mx-3" />
-              <div className="hidden sm:flex items-center gap-2">
-                <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
-                  <span className="text-primary text-xs font-bold">BR</span>
-                </div>
-                <div className="text-[10px] text-white/80 leading-tight">
-                  <div className="font-semibold text-white">PREFEITURA</div>
-                  <div>BELFORD ROXO</div>
-                </div>
-              </div>
+          <div className="flex items-center justify-between h-20 md:h-24">
+            {/* Logo oficial 2909 */}
+            <Link href="/" className="flex items-center gap-4 md:gap-6">
+              {/* Logo 2909 oficial */}
+              <Image
+                src="/images/logo-2909.png"
+                alt="2909 - Central de Atendimento"
+                width={220}
+                height={60}
+                className="h-12 md:h-16 w-auto object-contain"
+                priority
+              />
+              
+              {/* Separador */}
+              <div className="hidden md:block h-18 w-px bg-white/30" />
+              
+              {/* Logo da Prefeitura */}
+              <Image
+                src="/images/logo-belford-roxo.png"
+                alt="Brasão da Prefeitura Municipal de Belford Roxo - Escudo azul com símbolos representando indústria, agricultura e desenvolvimento do município"
+                width={140}
+                height={70}
+                className="hidden md:block object-contain h-16"
+              />
             </Link>
 
-            {/* Controles de acessibilidade e busca */}
-            <div className="flex items-center gap-2">
-              {/* Acessibilidade */}
-              <div className="hidden md:flex items-center gap-1 mr-2">
+            {/* Lado direito - controles */}
+            <div className="flex items-center gap-3 md:gap-4">
+              {/* Acessibilidade - estilo 1746 */}
+              <div className="hidden md:flex items-center gap-1 rounded-full px-3 py-1.5" style={{ backgroundColor: 'rgba(255,255,255,0.15)' }}>
                 <button
                   onClick={increaseFontSize}
-                  className="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded transition-colors"
+                  className="px-2 py-1 text-white/90 hover:text-white transition-colors text-sm font-bold"
                   title="Aumentar fonte"
-                  aria-label="Aumentar tamanho da fonte"
                 >
-                  <ZoomIn size={18} />
+                  A+
                 </button>
                 <button
                   onClick={decreaseFontSize}
-                  className="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded transition-colors"
+                  className="px-2 py-1 text-white/90 hover:text-white transition-colors text-sm font-bold"
                   title="Diminuir fonte"
-                  aria-label="Diminuir tamanho da fonte"
                 >
-                  <ZoomOut size={18} />
+                  A-
                 </button>
                 <button
                   onClick={toggleContrast}
-                  className="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded transition-colors"
+                  className="p-1.5 text-white/90 hover:text-white transition-colors"
                   title="Alto contraste"
-                  aria-label="Alternar modo de alto contraste"
                 >
-                  {contrastMode === "normal" ? <Moon size={18} /> : <Sun size={18} />}
+                  <Moon size={16} />
                 </button>
               </div>
 
@@ -131,11 +129,11 @@ export default function Header() {
                     placeholder="Pesquisar"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-48 lg:w-64 px-4 py-1.5 pr-10 text-sm rounded-md bg-white text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-white/50"
+                    className="w-44 lg:w-52 px-4 py-2 pr-10 text-sm rounded bg-white text-gray-800 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-white/50 border-0"
                   />
                   <button
                     type="submit"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
                   >
                     <Search size={18} />
                   </button>
@@ -145,7 +143,7 @@ export default function Header() {
               {/* Login/Cadastro */}
               <Link
                 href="/auth"
-                className="hidden md:flex items-center gap-1 px-3 py-1.5 text-sm text-white/90 hover:text-white hover:bg-white/10 rounded transition-colors"
+                className="hidden md:flex items-center gap-2 text-white/90 hover:text-white transition-colors text-sm"
               >
                 Acessar | Cadastrar
               </Link>
@@ -156,7 +154,7 @@ export default function Header() {
                 className="md:hidden p-2 text-white/80 hover:text-white"
                 aria-label="Abrir busca"
               >
-                <Search size={20} />
+                <Search size={22} />
               </button>
 
               {/* Menu mobile */}
@@ -165,26 +163,27 @@ export default function Header() {
                 className="md:hidden p-2 text-white/80 hover:text-white"
                 aria-label="Abrir menu"
               >
-                {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                {isMenuOpen ? <X size={26} /> : <Menu size={26} />}
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Navegação principal */}
-      <nav className="bg-primary">
+      {/* Navegação principal - azul claro igual ao site oficial de Belford Roxo */}
+      <nav style={{ backgroundColor: '#0094de' }}>
         <div className="container-main">
-          <ul className="hidden md:flex items-center gap-1 h-11">
+          <ul className="hidden md:flex items-center h-11">
             {navItems.map((item) => (
               <li key={item.name}>
                 <Link
                   href={item.href}
-                  className={`px-3 py-2 text-sm font-medium rounded transition-colors ${
+                  className={`px-4 py-2.5 text-sm font-medium transition-colors ${
                     item.highlight
-                      ? "bg-accent-yellow text-primary-dark hover:bg-accent-yellow/90"
-                      : "text-white/90 hover:text-white hover:bg-white/10"
+                      ? "text-[#1748ae] hover:bg-yellow-400"
+                      : "text-white hover:bg-white/10"
                   }`}
+                  style={item.highlight ? { backgroundColor: '#eab308' } : {}}
                 >
                   {item.name}
                 </Link>
@@ -196,8 +195,19 @@ export default function Header() {
 
       {/* Menu mobile expandido */}
       {isMenuOpen && (
-        <div className="md:hidden bg-primary border-t border-white/10">
+        <div style={{ backgroundColor: '#0094de' }} className="md:hidden border-t border-white/10">
           <div className="container-main py-4">
+            {/* Logo mobile */}
+            <div className="flex items-center gap-3 pb-4 mb-4 border-b border-white/20">
+              <Image
+                src="/images/logo-belford-roxo.png"
+                alt="Brasão da Prefeitura Municipal de Belford Roxo"
+                width={40}
+                height={40}
+                className="object-contain"
+              />
+            </div>
+            
             <nav className="space-y-1">
               {navItems.map((item) => (
                 <Link
@@ -205,20 +215,21 @@ export default function Header() {
                   href={item.href}
                   className={`block px-4 py-3 text-sm font-medium rounded transition-colors ${
                     item.highlight
-                      ? "bg-accent-yellow text-primary-dark"
-                      : "text-white/90 hover:text-white hover:bg-white/10"
+                      ? "bg-yellow-500 text-[#1e3a5f]"
+                      : "text-white hover:bg-white/10"
                   }`}
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {item.name}
                 </Link>
               ))}
-              <div className="pt-4 border-t border-white/10 mt-4">
+              <div className="pt-4 border-t border-white/20 mt-4">
                 <Link
                   href="/auth"
-                  className="block px-4 py-3 text-sm font-medium text-white/90 hover:text-white hover:bg-white/10 rounded"
+                  className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-white hover:bg-white/10 rounded"
                   onClick={() => setIsMenuOpen(false)}
                 >
+                  <User size={18} />
                   Acessar | Cadastrar
                 </Link>
               </div>
@@ -229,7 +240,7 @@ export default function Header() {
 
       {/* Busca mobile expandida */}
       {isSearchOpen && (
-        <div className="md:hidden bg-primary border-t border-white/10 p-4">
+        <div style={{ backgroundColor: '#0094de' }} className="md:hidden border-t border-white/10 p-4">
           <form onSubmit={handleSearch}>
             <div className="relative">
               <input
@@ -237,12 +248,12 @@ export default function Header() {
                 placeholder="Pesquisar serviços..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-4 py-3 pr-12 text-sm rounded-md bg-white text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-white/50"
+                className="w-full px-4 py-3 pr-12 text-sm rounded bg-white text-gray-800 placeholder:text-gray-500 focus:outline-none"
                 autoFocus
               />
               <button
                 type="submit"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
               >
                 <Search size={20} />
               </button>

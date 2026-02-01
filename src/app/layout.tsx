@@ -1,21 +1,8 @@
 import type { Metadata } from "next";
-import { Inter, Poppins } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-  display: "swap",
-});
-
-const poppins = Poppins({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-poppins",
-  display: "swap",
-});
+import AccessibilityBar from "@/components/ui/AccessibilityBar";
 
 export const metadata: Metadata = {
   title: {
@@ -55,11 +42,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" className={`${inter.variable} ${poppins.variable}`}>
-      <body className="min-h-screen flex flex-col font-sans">
+    <html lang="pt-BR">
+      <body 
+        className="min-h-screen flex flex-col"
+        style={{ fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif" }}
+      >
         <Header />
-        <main className="flex-1 bg-neutral-50">{children}</main>
+        <main className="flex-1" style={{ backgroundColor: '#cce5f7' }}>
+          {children}
+        </main>
         <Footer />
+        <AccessibilityBar />
       </body>
     </html>
   );
