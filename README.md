@@ -1,36 +1,138 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Portal 2909 - Central de Atendimento ao Cidadão
 
-## Getting Started
+Portal de atendimento ao cidadão da Prefeitura de Belford Roxo, inspirado no portal 1746 do Rio de Janeiro.
 
-First, run the development server:
+## 🚀 Tecnologias
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **Next.js 16** - Framework React com App Router
+- **TypeScript** - Tipagem estática
+- **Tailwind CSS v4** - Estilização
+- **Lucide React** - Ícones
+
+## 📁 Estrutura do Projeto
+
+```
+portal-2909/
+├── src/
+│   ├── app/                    # Rotas e páginas (App Router)
+│   │   ├── api/                # API Routes
+│   │   │   ├── auth/           # Autenticação
+│   │   │   └── requests/       # Solicitações
+│   │   ├── auth/               # Página de login/cadastro
+│   │   ├── consulta/           # Consulta de protocolo
+│   │   ├── faq/                # Perguntas frequentes
+│   │   ├── ouvidoria/          # Canal da ouvidoria
+│   │   ├── servicos/           # Categorias e serviços
+│   │   │   ├── [category]/     # Página de categoria
+│   │   │   └── [category]/[service]/ # Página de serviço
+│   │   └── solicitacao/        # Nova solicitação
+│   ├── components/
+│   │   ├── layout/             # Componentes de layout
+│   │   │   ├── Header.tsx      # Cabeçalho
+│   │   │   ├── Footer.tsx      # Rodapé
+│   │   │   └── Sidebar.tsx     # Barra lateral
+│   │   └── ui/                 # Componentes UI reutilizáveis
+│   │       ├── Banner.tsx      # Carrossel
+│   │       ├── Button.tsx      # Botões
+│   │       ├── Card.tsx        # Cards
+│   │       ├── Input.tsx       # Inputs
+│   │       └── Steps.tsx       # Indicador de etapas
+│   ├── data/                   # Dados estáticos
+│   │   └── services.ts         # Categorias e serviços
+│   ├── lib/                    # Utilitários e funções
+│   │   ├── auth.ts             # Lógica de autenticação
+│   │   ├── requests.ts         # Lógica de solicitações
+│   │   └── utils.ts            # Funções utilitárias
+│   └── types/                  # Tipos TypeScript
+│       └── index.ts            # Definições de tipos
+└── public/                     # Arquivos estáticos
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🎯 Funcionalidades
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Implementadas:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. **Página inicial** com categorias de serviços e banner rotativo
+2. **Navegação por categorias** (12+ categorias de serviços)
+3. **Sistema de autenticação** (login/cadastro com CPF)
+4. **Fluxo de solicitação** em 3 etapas (Informação → Solicitação → Confirmação)
+5. **Consulta de protocolo** para acompanhamento
+6. **Página de FAQ** com busca
+7. **Canal da Ouvidoria** (denúncia, reclamação, sugestão, elogio)
+8. **Acessibilidade** (aumento de fonte, alto contraste)
+9. **API REST** para autenticação e solicitações
+10. **Design responsivo** (mobile-first)
 
-## Learn More
+### Categorias de Serviços:
 
-To learn more about Next.js, take a look at the following resources:
+- Animais
+- Acessibilidade  
+- Assistência Social
+- Conservação (buracos, calçadas, poda)
+- Defesa Civil
+- Educação
+- Iluminação Pública
+- Limpeza Urbana
+- Saúde
+- Trânsito
+- Ouvidoria
+- Ordem Pública
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🔒 Segurança
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Validação de CPF no frontend e backend
+- Sanitização de inputs (prevenção XSS)
+- Cookies httpOnly para tokens de autenticação
+- Senhas nunca armazenadas em texto plano
+- Dados sensíveis não expostos em APIs públicas (LGPD)
+- Opção de denúncia anônima
 
-## Deploy on Vercel
+## 🎨 Identidade Visual
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Cores baseadas na Prefeitura de Belford Roxo:
+- **Primária**: #1748ae (azul)
+- **Secundária**: #0094de (azul claro)
+- **Destaque**: #f4c738 (amarelo)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 💻 Como Executar
+
+```bash
+# Instalar dependências
+npm install
+
+# Modo desenvolvimento
+npm run dev
+
+# Build de produção
+npm run build
+
+# Iniciar produção
+npm start
+```
+
+Acesse: http://localhost:3000
+
+## 📞 Informações de Contato (Belford Roxo)
+
+- **Telefone**: 2909
+- **Email**: ouvidoriageral@prefeituradebelfordroxo.rj.gov.br
+- **Endereço**: Av. Joaquim da Costa Lima, 3250, São Bernardo
+- **CEP**: 26167-325
+- **CNPJ**: 39.436.436/0001-42
+
+## 🔜 Melhorias Futuras Sugeridas
+
+1. **Banco de dados real** (PostgreSQL/MySQL) para persistência
+2. **Upload de arquivos** para anexos em solicitações
+3. **Notificações por email** para atualizações de status
+4. **Dashboard administrativo** para gestão de solicitações
+5. **Integração com mapa** para geolocalização de ocorrências
+6. **App mobile** (React Native / PWA)
+7. **Chatbot** para atendimento automatizado
+8. **Integração com WhatsApp Business API**
+9. **Sistema de avaliação** de atendimento
+10. **Relatórios e estatísticas** para gestão pública
+
+## 📄 Licença
+
+Este projeto foi desenvolvido para a Prefeitura de Belford Roxo.
