@@ -74,33 +74,33 @@ export default function Banner() {
     <div className="relative overflow-hidden rounded-xl shadow-lg">
       {/* Slide com gradiente azul de Belford Roxo */}
       <div
-        className="relative text-white min-h-[300px] md:min-h-[340px] flex items-center transition-all duration-500"
+        className="relative text-white h-[320px] md:h-[340px] flex items-center transition-all duration-500"
         style={{
           background: 'linear-gradient(135deg, #1748ae 0%, #0094de 50%, #1748ae 100%)'
         }}
       >
         {/* Conteúdo do slide */}
-        <div className="relative z-10 px-8 md:px-12 py-10 max-w-2xl">
+        <div className="relative z-10 px-8 md:px-12 py-8 max-w-2xl">
           {slide.subtitle && (
             <p className="text-sm md:text-base font-medium text-white/80 mb-2">
               {slide.subtitle}
             </p>
           )}
           <h2 
-            className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 leading-tight"
+            className="text-2xl md:text-3xl lg:text-4xl font-bold mb-3 leading-tight"
             style={{ fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif" }}
           >
             {slide.title}
           </h2>
           {slide.description && (
-            <p className="text-base md:text-lg text-white/90 mb-8 leading-relaxed max-w-lg">
+            <p className="text-sm md:text-base text-white/90 mb-6 leading-relaxed max-w-lg">
               {slide.description}
             </p>
           )}
           {slide.ctaText && slide.ctaLink && (
             <Link
               href={slide.ctaLink}
-              className="inline-flex items-center gap-2 px-8 py-4 bg-white font-bold rounded-lg hover:bg-gray-100 transition-colors shadow-md"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-white font-bold rounded-lg hover:bg-gray-100 transition-colors shadow-md"
               style={{ color: '#1748ae' }}
             >
               {slide.ctaText}
@@ -129,26 +129,29 @@ export default function Banner() {
       {/* Controles de navegação */}
       <button
         onClick={prevSlide}
-        className="absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 bg-black/20 hover:bg-black/40 rounded-full flex items-center justify-center text-white transition-colors backdrop-blur-sm"
+        className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-11 h-11 bg-black/20 hover:bg-black/40 rounded-full flex items-center justify-center text-white transition-colors backdrop-blur-sm cursor-pointer"
         aria-label="Slide anterior"
+        type="button"
       >
         <ChevronLeft size={26} />
       </button>
       <button
         onClick={nextSlide}
-        className="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 bg-black/20 hover:bg-black/40 rounded-full flex items-center justify-center text-white transition-colors backdrop-blur-sm"
+        className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-11 h-11 bg-black/20 hover:bg-black/40 rounded-full flex items-center justify-center text-white transition-colors backdrop-blur-sm cursor-pointer"
         aria-label="Próximo slide"
+        type="button"
       >
         <ChevronRight size={26} />
       </button>
 
       {/* Indicadores de slide */}
-      <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-2">
+      <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-20 flex gap-2">
         {slides.map((_, index) => (
           <button
             key={index}
             onClick={() => goToSlide(index)}
-            className={`h-2.5 rounded-full transition-all ${
+            type="button"
+            className={`h-2.5 rounded-full transition-all cursor-pointer ${
               index === currentSlide
                 ? "bg-white w-7"
                 : "bg-white/50 w-2.5 hover:bg-white/70"
