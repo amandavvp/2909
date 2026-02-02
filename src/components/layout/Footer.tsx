@@ -5,9 +5,15 @@ import {
   Facebook, 
   Youtube, 
   Linkedin,
-  Twitter,
   MessageCircle
 } from "lucide-react";
+
+// Ícone do X (antigo Twitter)
+const XIcon = ({ size = 18 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+  </svg>
+);
 
 const institutionalLinks = [
   { name: "Lei de Acesso à Informação", href: "/lai" },
@@ -29,7 +35,7 @@ const serviceLinks = [
 const socialLinks = [
   { name: "Instagram", href: "https://www.instagram.com/prefeituradebelfordroxo/", icon: Instagram },
   { name: "Facebook", href: "https://www.facebook.com/PrefeituradeBelfordRoxo/", icon: Facebook },
-  { name: "Twitter", href: "https://twitter.com/preflorodorigues", icon: Twitter },
+  { name: "X", href: "https://x.com/Prefbelroxo2", icon: XIcon },
   { name: "Youtube", href: "https://www.youtube.com/@prefeituradebelfordroxo", icon: Youtube },
   { name: "LinkedIn", href: "https://www.linkedin.com/company/prefeitura-municipal-de-belford-roxo/", icon: Linkedin },
 ];
@@ -54,27 +60,29 @@ export default function Footer() {
       {/* Conteúdo principal do footer */}
       <div className="container-main py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
-          {/* Logo e informações da prefeitura */}
+          {/* Logo e informações da prefeitura - estilo 1746 */}
           <div className="lg:col-span-1">
-            <div className="flex items-center gap-3 mb-6">
+            {/* Logo alinhado à esquerda */}
+            <div className="mb-4">
               <Image
                 src="/images/logo-belford-roxo.png"
-                alt="Prefeitura de Belford Roxo"
-                width={60}
-                height={60}
-                className="object-contain"
+                alt="Brasão da Prefeitura Municipal de Belford Roxo"
+                width={220}
+                height={100}
+                className="object-contain object-left"
               />
-              <div>
-                <div className="text-xs tracking-widest font-bold">PREFEITURA</div>
-                <div className="text-xl font-bold">BELFORD ROXO</div>
-              </div>
             </div>
-            <address className="not-italic text-sm text-white/80 space-y-1 leading-relaxed">
-              <p>Prefeitura Municipal de Belford Roxo</p>
+            
+            {/* Nome da prefeitura - igual ao 1746 */}
+            <p className="text-base text-white/90 mb-6">
+              Prefeitura Municipal de Belford Roxo
+            </p>
+            
+            {/* Endereço - espaçamento igual ao 1746 */}
+            <address className="not-italic text-base text-white/80 space-y-0.5 leading-relaxed">
               <p>Av. Joaquim da Costa Lima, 3250</p>
               <p>São Bernardo - Belford Roxo - RJ</p>
               <p>CEP: 26167-325</p>
-              <p>CNPJ: 39.485.438/0001-42</p>
             </address>
             
             {/* Redes sociais */}
@@ -164,7 +172,7 @@ export default function Footer() {
       <div style={{ backgroundColor: '#0a2a6e' }}>
         <div className="container-main py-4">
           <p className="text-xs text-center text-white/60">
-            © {new Date().getFullYear()} - PMBR - Prefeitura Municipal de Belford Roxo | Todos os direitos reservados.
+            © {new Date().getFullYear()} - PMBR - Prefeitura Municipal de Belford Roxo | CNPJ: 39.485.438/0001-42 | Todos os direitos reservados.
           </p>
         </div>
       </div>

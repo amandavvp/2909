@@ -82,7 +82,7 @@ export default function Header() {
               />
               
               {/* Separador */}
-              <div className="hidden md:block h-18 w-px bg-white/30" />
+              <div className="hidden md:block h-16 w-px bg-white/30" />
               
               {/* Logo da Prefeitura */}
               <Image

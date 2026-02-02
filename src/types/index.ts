@@ -8,6 +8,16 @@ export interface ServiceCategory {
   services: Service[];
 }
 
+export interface DetailedServiceInfo {
+  oQueE: string;
+  paraQueServe: string;
+  quemPodeSolicitar: string;
+  informacoesComplementares?: string;
+  informacoesNecessarias: string[];
+  tempoAtendimento: string;
+  legislacao?: string[];
+}
+
 export interface Service {
   id: string;
   name: string;
@@ -15,6 +25,7 @@ export interface Service {
   categoryId: string;
   description: string;
   requiresAuth: boolean;
+  detailedInfo?: DetailedServiceInfo;
   fields: FormField[];
 }
 

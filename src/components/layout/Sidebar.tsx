@@ -55,7 +55,7 @@ export default function Sidebar({ activeCategory }: SidebarProps) {
 
   const mostRequested = [
     { name: "Buraco na Rua", slug: "conservacao/buraco-rua", icon: "Wrench" },
-    { name: "Lâmpada Queimada", slug: "iluminacao-publica/lampada-queimada", icon: "Lightbulb" },
+    { name: "Iluminação Pública", slug: "iluminacao-publica/iluminacao-publica", icon: "Lightbulb" },
     { name: "Coleta de Lixo", slug: "limpeza-urbana/coleta-lixo", icon: "Trash2" },
     { name: "Poda de Árvore", slug: "conservacao/poda-arvore", icon: "Wrench" },
     { name: "Foco de Dengue", slug: "saude/foco-dengue", icon: "Stethoscope" },
@@ -63,7 +63,7 @@ export default function Sidebar({ activeCategory }: SidebarProps) {
   ];
 
   return (
-    <aside className="w-full lg:w-80 flex-shrink-0">
+    <aside className="w-full lg:w-[340px] flex-shrink-0">
       <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
         {/* Tabs - estilo 1746 */}
         <div className="flex border-b border-gray-200">

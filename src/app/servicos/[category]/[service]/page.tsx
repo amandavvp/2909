@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ChevronRight, AlertCircle } from "lucide-react";
+import { ChevronRight, Clock, BookOpen, Users, Info, FileText, Scale } from "lucide-react";
 import Sidebar from "@/components/layout/Sidebar";
 import { getServiceBySlug, serviceCategories, getCategoryBySlug } from "@/data/services";
 import type { Metadata } from "next";
@@ -49,6 +49,8 @@ export default async function ServicePage({ params }: PageProps) {
     notFound();
   }
 
+  const detailedInfo = serviceData.detailedInfo;
+
   return (
     <div className="container-main py-8">
       <div className="flex flex-col lg:flex-row gap-8">
@@ -87,74 +89,125 @@ export default async function ServicePage({ params }: PageProps) {
 
           {/* Detalhes do serviço */}
           <div className="bg-white rounded-lg shadow-card border border-neutral-100 overflow-hidden">
-            <div className="px-6 py-5 border-b border-neutral-100">
+            <div className="px-6 py-5 border-b border-neutral-100 bg-gradient-to-r from-primary/5 to-transparent">
               <h1 className="text-2xl font-bold text-neutral-800">
                 {serviceData.name}
               </h1>
-              <p className="text-neutral-600 mt-2">{serviceData.description}</p>
             </div>
 
             <div className="px-6 py-6">
-              {/* Aviso de autenticação */}
-              {serviceData.requiresAuth && (
-                <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-lg mb-6">
-                  <AlertCircle className="text-amber-600 flex-shrink-0 mt-0.5" size={20} />
-                  <div>
-                    <p className="font-medium text-amber-800">
-                      Este serviço requer login
+              {detailedInfo ? (
+                <div className="space-y-6">
+                  {/* O que é */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-primary">
+                      <Info size={20} />
+                      <h2 className="font-bold text-lg">O que é:</h2>
+                    </div>
+                    <p className="text-neutral-700 leading-relaxed pl-7">
+                      {detailedInfo.oQueE}
                     </p>
-                    <p className="text-sm text-amber-700 mt-1">
-                      Para abrir esta solicitação, você precisa estar logado em sua conta.{" "}
-                      <Link href="/auth" className="underline hover:no-underline">
-                        Clique aqui para fazer login ou se cadastrar
-                      </Link>
-                      .
+                  </div>
+
+                  {/* Para que serve */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-primary">
+                      <BookOpen size={20} />
+                      <h2 className="font-bold text-lg">Para que serve:</h2>
+                    </div>
+                    <p className="text-neutral-700 leading-relaxed pl-7">
+                      {detailedInfo.paraQueServe}
+                    </p>
+                  </div>
+
+                  {/* Quem pode solicitar */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-primary">
+                      <Users size={20} />
+                      <h2 className="font-bold text-lg">Quem pode solicitar:</h2>
+                    </div>
+                    <p className="text-neutral-700 leading-relaxed pl-7">
+                      {detailedInfo.quemPodeSolicitar}
+                    </p>
+                  </div>
+
+                  {/* Informações complementares */}
+                  {detailedInfo.informacoesComplementares && (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-primary">
+                        <Info size={20} />
+                        <h2 className="font-bold text-lg">Informações complementares:</h2>
+                      </div>
+                      <p className="text-neutral-700 leading-relaxed pl-7">
+                        {detailedInfo.informacoesComplementares}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Informações necessárias */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-primary">
+                      <FileText size={20} />
+                      <h2 className="font-bold text-lg">Informações necessárias:</h2>
+                    </div>
+                    <ul className="list-disc list-inside space-y-1 text-neutral-700 pl-7">
+                      {detailedInfo.informacoesNecessarias.map((info, index) => (
+                        <li key={index}>{info}</li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Tempo para atendimento */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-primary">
+                      <Clock size={20} />
+                      <h2 className="font-bold text-lg">Tempo para atendimento:</h2>
+                    </div>
+                    <p className="text-neutral-700 leading-relaxed pl-7 font-medium">
+                      {detailedInfo.tempoAtendimento}
+                    </p>
+                  </div>
+
+                  {/* Legislação relacionada */}
+                  {detailedInfo.legislacao && detailedInfo.legislacao.length > 0 && (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-primary">
+                        <Scale size={20} />
+                        <h2 className="font-bold text-lg">Legislação relacionada:</h2>
+                      </div>
+                      <ul className="list-disc list-inside space-y-1 text-neutral-700 pl-7">
+                        {detailedInfo.legislacao.map((lei, index) => (
+                          <li key={index}>{lei}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                /* Fallback para serviços sem informações detalhadas */
+                <div className="space-y-4 mb-8">
+                  <h2 className="font-semibold text-lg text-neutral-800">
+                    Informações sobre este serviço
+                  </h2>
+                  <div className="prose prose-sm max-w-none text-neutral-600">
+                    <p>{serviceData.description}</p>
+                    <p>
+                      Utilize este formulário para registrar sua solicitação relacionada a{" "}
+                      <strong>{serviceData.name.toLowerCase()}</strong> na cidade de Belford Roxo.
+                    </p>
+                    <p>
+                      Após o envio, você receberá um número de protocolo para acompanhamento.
+                      O prazo de resposta varia de acordo com a complexidade da demanda.
                     </p>
                   </div>
                 </div>
               )}
 
-              {/* Informações do serviço */}
-              <div className="space-y-4 mb-8">
-                <h2 className="font-semibold text-lg text-neutral-800">
-                  Informações sobre este serviço
-                </h2>
-                <div className="prose prose-sm max-w-none text-neutral-600">
-                  <p>
-                    Utilize este formulário para registrar sua solicitação relacionada a{" "}
-                    <strong>{serviceData.name.toLowerCase()}</strong> na cidade de Belford Roxo.
-                  </p>
-                  <p>
-                    Após o envio, você receberá um número de protocolo para acompanhamento.
-                    O prazo de resposta varia de acordo com a complexidade da demanda.
-                  </p>
-                </div>
-              </div>
-
-              {/* Campos do formulário (preview) */}
-              {serviceData.fields.length > 0 && (
-                <div className="space-y-4 mb-8">
-                  <h2 className="font-semibold text-lg text-neutral-800">
-                    Informações necessárias
-                  </h2>
-                  <ul className="list-disc list-inside space-y-2 text-neutral-600">
-                    {serviceData.fields.map((field) => (
-                      <li key={field.id}>
-                        {field.label}
-                        {field.required && (
-                          <span className="text-red-500 ml-1">*</span>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
               {/* Botão de ação */}
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex flex-col sm:flex-row gap-4 mt-8 pt-6 border-t border-neutral-100">
                 <Link
                   href={`/solicitacao?category=${category}&service=${service}`}
-                  className="inline-flex items-center justify-center px-6 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-primary-dark transition-colors"
+                  className="inline-flex items-center justify-center px-8 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-[#0d3380] transition-colors shadow-md"
                 >
                   Abrir Solicitação
                 </Link>
