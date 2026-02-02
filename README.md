@@ -1,138 +1,238 @@
 # Portal 2909 - Central de Atendimento ao Cidadão
 
-Portal de atendimento ao cidadão da Prefeitura de Belford Roxo, inspirado no portal 1746 do Rio de Janeiro.
+Portal de serviços da Prefeitura Municipal de Belford Roxo, inspirado no 1746.rio da Prefeitura do Rio de Janeiro.
 
-## 🚀 Tecnologias
+![Next.js](https://img.shields.io/badge/Next.js-16.1-black)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.0-38bdf8)
 
-- **Next.js 16** - Framework React com App Router
-- **TypeScript** - Tipagem estática
-- **Tailwind CSS v4** - Estilização
-- **Lucide React** - Ícones
+---
+
+## 🚀 Como Rodar o Projeto
+
+### Pré-requisitos
+
+Certifique-se de ter instalado:
+- **Node.js** versão 18 ou superior ([download](https://nodejs.org/))
+- **npm** (já vem com o Node.js)
+
+Para verificar se já tem instalado, abra o terminal e digite:
+```bash
+node -v   # deve mostrar v18.x.x ou superior
+npm -v    # deve mostrar 9.x.x ou superior
+```
+
+---
+
+### 🪟 Instalação no Windows
+
+1. **Baixe o Node.js** em [nodejs.org](https://nodejs.org/) (escolha a versão LTS)
+2. **Instale** seguindo o assistente (próximo, próximo, concluir)
+3. **Abra o Prompt de Comando, PowerShell ou Terminal do VS Code**
+4. **Navegue até a pasta do projeto:**
+```cmd
+cd C:\Caminho\Para\portal-2909
+```
+
+5. **Instale as dependências:**
+```cmd
+npm install
+```
+
+6. **Rode o servidor:**
+```cmd
+npm run dev
+```
+
+7. **Acesse no navegador:**
+```
+http://localhost:3000
+```
+
+> 💡 **Dica:** No Windows, você pode abrir o terminal diretamente na pasta clicando com botão direito na pasta e selecionando "Abrir no Terminal" ou "Abrir janela do PowerShell aqui".
+
+---
+
+### 🍎 Instalação no macOS / Linux
+
+1. **Instale o Node.js:**
+   - macOS: `brew install node` (com Homebrew) ou baixe em [nodejs.org](https://nodejs.org/)
+   - Linux: `sudo apt install nodejs npm` (Ubuntu/Debian)
+
+2. **Abra o Terminal**
+
+3. **Navegue até a pasta do projeto:**
+```bash
+cd /caminho/para/portal-2909
+```
+
+4. **Instale as dependências:**
+```bash
+npm install
+```
+
+5. **Rode o servidor:**
+```bash
+npm run dev
+```
+
+6. **Acesse no navegador:**
+```
+http://localhost:3000
+```
+
+---
+
+## 📦 Comandos Disponíveis
+
+| Comando | Descrição |
+|---------|-----------|
+| `npm run dev` | Inicia o servidor de desenvolvimento |
+| `npm run build` | Gera a build de produção |
+| `npm run start` | Inicia o servidor de produção (após build) |
+| `npm run lint` | Verifica erros de código |
+
+---
 
 ## 📁 Estrutura do Projeto
 
 ```
 portal-2909/
+├── public/                    # Arquivos públicos (imagens, favicon)
+│   ├── images/
+│   │   ├── logo-2909.png      # Logo do portal
+│   │   └── logo-belford-roxo.png  # Brasão da prefeitura
+│   ├── favicon.ico
+│   └── icon-192.png
+│
 ├── src/
-│   ├── app/                    # Rotas e páginas (App Router)
-│   │   ├── api/                # API Routes
-│   │   │   ├── auth/           # Autenticação
-│   │   │   └── requests/       # Solicitações
-│   │   ├── auth/               # Página de login/cadastro
-│   │   ├── consulta/           # Consulta de protocolo
-│   │   ├── faq/                # Perguntas frequentes
-│   │   ├── ouvidoria/          # Canal da ouvidoria
-│   │   ├── servicos/           # Categorias e serviços
-│   │   │   ├── [category]/     # Página de categoria
-│   │   │   └── [category]/[service]/ # Página de serviço
-│   │   └── solicitacao/        # Nova solicitação
-│   ├── components/
-│   │   ├── layout/             # Componentes de layout
-│   │   │   ├── Header.tsx      # Cabeçalho
-│   │   │   ├── Footer.tsx      # Rodapé
-│   │   │   └── Sidebar.tsx     # Barra lateral
-│   │   └── ui/                 # Componentes UI reutilizáveis
-│   │       ├── Banner.tsx      # Carrossel
-│   │       ├── Button.tsx      # Botões
-│   │       ├── Card.tsx        # Cards
-│   │       ├── Input.tsx       # Inputs
-│   │       └── Steps.tsx       # Indicador de etapas
-│   ├── data/                   # Dados estáticos
-│   │   └── services.ts         # Categorias e serviços
-│   ├── lib/                    # Utilitários e funções
-│   │   ├── auth.ts             # Lógica de autenticação
-│   │   ├── requests.ts         # Lógica de solicitações
-│   │   └── utils.ts            # Funções utilitárias
-│   └── types/                  # Tipos TypeScript
-│       └── index.ts            # Definições de tipos
-└── public/                     # Arquivos estáticos
+│   ├── app/                   # Páginas (App Router do Next.js)
+│   │   ├── page.tsx           # Página inicial
+│   │   ├── layout.tsx         # Layout principal
+│   │   ├── globals.css        # Estilos globais
+│   │   ├── auth/              # Página de login/cadastro
+│   │   ├── servicos/          # Páginas de serviços
+│   │   ├── solicitacao/       # Página de nova solicitação
+│   │   ├── consulta/          # Consulta de protocolo
+│   │   ├── faq/               # Perguntas frequentes
+│   │   ├── ouvidoria/         # Ouvidoria
+│   │   └── api/               # Rotas de API
+│   │
+│   ├── components/            # Componentes reutilizáveis
+│   │   ├── layout/
+│   │   │   ├── Header.tsx     # Cabeçalho
+│   │   │   ├── Footer.tsx     # Rodapé
+│   │   │   └── Sidebar.tsx    # Menu lateral
+│   │   └── ui/
+│   │       ├── Banner.tsx     # Carrossel da home
+│   │       ├── Button.tsx     # Botão
+│   │       ├── Input.tsx      # Campo de entrada
+│   │       └── Card.tsx       # Card
+│   │
+│   ├── data/
+│   │   └── services.ts        # Dados dos serviços e categorias
+│   │
+│   ├── lib/
+│   │   ├── utils.ts           # Funções utilitárias
+│   │   ├── auth.ts            # Funções de autenticação
+│   │   └── requests.ts        # Funções de solicitações
+│   │
+│   └── types/
+│       └── index.ts           # Tipos TypeScript
+│
+├── package.json
+├── tsconfig.json
+├── postcss.config.mjs
+└── README.md
 ```
 
-## 🎯 Funcionalidades
+---
 
-### Implementadas:
+## 🎨 Tecnologias Utilizadas
 
-1. **Página inicial** com categorias de serviços e banner rotativo
-2. **Navegação por categorias** (12+ categorias de serviços)
-3. **Sistema de autenticação** (login/cadastro com CPF)
-4. **Fluxo de solicitação** em 3 etapas (Informação → Solicitação → Confirmação)
-5. **Consulta de protocolo** para acompanhamento
-6. **Página de FAQ** com busca
-7. **Canal da Ouvidoria** (denúncia, reclamação, sugestão, elogio)
-8. **Acessibilidade** (aumento de fonte, alto contraste)
-9. **API REST** para autenticação e solicitações
-10. **Design responsivo** (mobile-first)
+- **[Next.js 16](https://nextjs.org/)** - Framework React com SSR
+- **[TypeScript](https://www.typescriptlang.org/)** - Tipagem estática
+- **[Tailwind CSS 4](https://tailwindcss.com/)** - Estilização
+- **[Lucide React](https://lucide.dev/)** - Ícones
 
-### Categorias de Serviços:
+---
 
-- Animais
-- Acessibilidade  
-- Assistência Social
-- Conservação (buracos, calçadas, poda)
-- Defesa Civil
-- Educação
-- Iluminação Pública
-- Limpeza Urbana
-- Saúde
-- Trânsito
-- Ouvidoria
-- Ordem Pública
+## 🔧 Configurações
 
-## 🔒 Segurança
+### Cores da Prefeitura de Belford Roxo
 
-- Validação de CPF no frontend e backend
-- Sanitização de inputs (prevenção XSS)
-- Cookies httpOnly para tokens de autenticação
-- Senhas nunca armazenadas em texto plano
-- Dados sensíveis não expostos em APIs públicas (LGPD)
-- Opção de denúncia anônima
+As cores principais estão definidas em `src/app/globals.css`:
 
-## 🎨 Identidade Visual
+- **Azul Principal:** `#1748ae`
+- **Azul Secundário:** `#0094de`
+- **Amarelo Destaque:** `#eab308`
 
-Cores baseadas na Prefeitura de Belford Roxo:
-- **Primária**: #1748ae (azul)
-- **Secundária**: #0094de (azul claro)
-- **Destaque**: #f4c738 (amarelo)
+### Alterando o Logo
 
-## 💻 Como Executar
+Para trocar os logos, substitua os arquivos em:
+- `public/images/logo-2909.png` - Logo do portal (recomendado: 400x170px)
+- `public/images/logo-belford-roxo.png` - Brasão da prefeitura
+
+---
+
+## 📋 Funcionalidades
+
+- ✅ Listagem de categorias de serviços
+- ✅ Detalhes de cada serviço com informações completas
+- ✅ Formulário de abertura de solicitação
+- ✅ Consulta de protocolo
+- ✅ Sistema de login/cadastro (frontend)
+- ✅ Design responsivo (mobile e desktop)
+- ✅ Acessibilidade (aumentar/diminuir fonte, alto contraste)
+- ✅ Banner carrossel na página inicial
+- ✅ Integração com VLibras
+
+---
+
+## 🚀 Deploy em Produção
+
+### Opção 1: Vercel (Recomendado)
+
+1. Crie uma conta em [vercel.com](https://vercel.com)
+2. Conecte seu repositório GitHub
+3. Deploy automático!
+
+### Opção 2: Build Manual
 
 ```bash
-# Instalar dependências
-npm install
-
-# Modo desenvolvimento
-npm run dev
-
-# Build de produção
+# Gerar build de produção
 npm run build
 
-# Iniciar produção
-npm start
+# Iniciar servidor
+npm run start
 ```
 
-Acesse: http://localhost:3000
+---
 
-## 📞 Informações de Contato (Belford Roxo)
+## 📝 Próximos Passos (TODO)
 
-- **Telefone**: 2909
-- **Email**: ouvidoriageral@prefeituradebelfordroxo.rj.gov.br
-- **Endereço**: Av. Joaquim da Costa Lima, 3250, São Bernardo
-- **CEP**: 26167-325
-- **CNPJ**: 39.436.436/0001-42
+- [ ] Conectar com banco de dados real
+- [ ] Implementar autenticação com JWT
+- [ ] Sistema de notificações por email
+- [ ] Painel administrativo
+- [ ] Integração com API de geolocalização
 
-## 🔜 Melhorias Futuras Sugeridas
+---
 
-1. **Banco de dados real** (PostgreSQL/MySQL) para persistência
-2. **Upload de arquivos** para anexos em solicitações
-3. **Notificações por email** para atualizações de status
-4. **Dashboard administrativo** para gestão de solicitações
-5. **Integração com mapa** para geolocalização de ocorrências
-6. **App mobile** (React Native / PWA)
-7. **Chatbot** para atendimento automatizado
-8. **Integração com WhatsApp Business API**
-9. **Sistema de avaliação** de atendimento
-10. **Relatórios e estatísticas** para gestão pública
+## 👥 Contribuição
+
+1. Faça um fork do projeto
+2. Crie uma branch: `git checkout -b minha-feature`
+3. Commit: `git commit -m 'Adiciona nova feature'`
+4. Push: `git push origin minha-feature`
+5. Abra um Pull Request
+
+---
 
 ## 📄 Licença
 
-Este projeto foi desenvolvido para a Prefeitura de Belford Roxo.
+Este projeto foi desenvolvido para a Prefeitura Municipal de Belford Roxo.
+
+---
+
+**Desenvolvido com ❤️ para os cidadãos de Belford Roxo**
