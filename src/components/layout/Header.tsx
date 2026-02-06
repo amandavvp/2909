@@ -16,7 +16,7 @@ const navItems = [
   { name: "Serviços", href: "/", highlight: true },
   { name: "Lei de Acesso à Informação", href: "/lai" },
   { name: "Ouvidoria", href: "/ouvidoria" },
-  { name: "Central Anticorrupção", href: "/anticorrupcao" },
+
   { name: "Consulta Protocolo", href: "/consulta" },
   { name: "Notícias", href: "/noticias" },
   { name: "Relatórios", href: "/relatorios" },

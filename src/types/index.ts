@@ -1,4 +1,19 @@
+// =============================================================================
+// Portal 2909 - Tipos do Sistema
+// =============================================================================
+
+// Tipos de Role, Status, etc. como strings (compatível SQLite e PostgreSQL)
+export type UserRole = "CITIZEN" | "ATTENDANT" | "ANALYST" | "MANAGER" | "ADMIN";
+export type SlaPriority = "LOW" | "NORMAL" | "HIGH" | "URGENT";
+export type RequestStatus = "PENDING" | "IN_PROGRESS" | "WAITING_INFO" | "FORWARDED" | "RESOLVED" | "CLOSED" | "CANCELLED" | "REOPENED";
+export type RequestOrigin = "PORTAL" | "APP" | "PHONE" | "IN_PERSON" | "WHATSAPP" | "EMAIL" | "IMPORT";
+export type AuditAction = "CREATE" | "READ" | "UPDATE" | "DELETE" | "LOGIN" | "LOGOUT" | "EXPORT" | "STATUS_CHANGE" | "ASSIGNMENT" | "COMMENT";
+export type NotificationType = "STATUS_UPDATE" | "NEW_COMMENT" | "SLA_WARNING" | "SLA_BREACH" | "SYSTEM";
+
+// =============================================================================
 // Tipos para Categorias e Serviços
+// =============================================================================
+
 export interface ServiceCategory {
   id: string;
   name: string;
@@ -27,6 +42,7 @@ export interface Service {
   requiresAuth: boolean;
   detailedInfo?: DetailedServiceInfo;
   fields: FormField[];
+  slaHours?: number;
 }
 
 export interface FormField {
@@ -44,13 +60,17 @@ export interface FormField {
   };
 }
 
+// =============================================================================
 // Tipos para Usuário e Autenticação
+// =============================================================================
+
 export interface User {
   id: string;
   name: string;
   email: string;
   cpf: string;
   phone?: string;
+  role: string;
   address?: Address;
   createdAt: Date;
 }
@@ -65,49 +85,66 @@ export interface Address {
   zipCode: string;
 }
 
+// =============================================================================
 // Tipos para Solicitações/Protocolos
-export interface Request {
+// =============================================================================
+
+export interface ServiceRequest {
   id: string;
   protocol: string;
   userId: string;
   serviceId: string;
   serviceName: string;
   categoryName: string;
-  status: RequestStatus;
+  status: string;
+  origin: string;
   description: string;
   address?: Address;
   attachments: Attachment[];
   createdAt: Date;
   updatedAt: Date;
+  resolvedAt?: Date;
+  slaDeadline?: Date;
+  slaBreached: boolean;
   history: RequestHistoryItem[];
+  comments?: RequestComment[];
   isAnonymous: boolean;
+  assigneeName?: string;
+  departmentName?: string;
+  rating?: number;
+  ratingComment?: string;
 }
-
-export type RequestStatus = 
-  | 'pending'
-  | 'in_progress'
-  | 'waiting_info'
-  | 'resolved'
-  | 'closed'
-  | 'cancelled';
 
 export interface RequestHistoryItem {
   id: string;
-  status: RequestStatus;
+  fromStatus?: string;
+  toStatus: string;
   message: string;
   createdAt: Date;
   isPublic: boolean;
+  userName?: string;
+}
+
+export interface RequestComment {
+  id: string;
+  content: string;
+  isInternal: boolean;
+  userName: string;
+  createdAt: Date;
 }
 
 export interface Attachment {
   id: string;
-  name: string;
-  url: string;
-  type: string;
-  size: number;
+  fileName: string;
+  fileUrl: string;
+  fileType: string;
+  fileSize: number;
 }
 
-// Tipos para Notícias
+// =============================================================================
+// Tipos para Notícias e FAQ
+// =============================================================================
+
 export interface News {
   id: string;
   title: string;
@@ -120,7 +157,6 @@ export interface News {
   author: string;
 }
 
-// Tipos para FAQ/Perguntas Frequentes
 export interface FAQ {
   id: string;
   question: string;
@@ -129,7 +165,10 @@ export interface FAQ {
   order: number;
 }
 
+// =============================================================================
 // Tipos para formulários
+// =============================================================================
+
 export interface LoginFormData {
   cpf: string;
   password: string;
@@ -150,9 +189,13 @@ export interface RequestFormData {
   address?: Address;
   attachments?: File[];
   isAnonymous: boolean;
+  origin?: string;
 }
 
+// =============================================================================
 // Tipos para API
+// =============================================================================
+
 export interface ApiResponse<T> {
   success: boolean;
   data?: T;
@@ -168,7 +211,56 @@ export interface PaginatedResponse<T> {
   totalPages: number;
 }
 
-// Tipos para acessibilidade
+// =============================================================================
+// Tipos para Dashboard e Relatórios
+// =============================================================================
+
+export interface DashboardStats {
+  totalRequests: number;
+  pendingRequests: number;
+  inProgressRequests: number;
+  resolvedRequests: number;
+  closedRequests: number;
+  cancelledRequests: number;
+  slaBreached: number;
+  avgResolutionHours: number;
+  todayRequests: number;
+  weekRequests: number;
+  monthRequests: number;
+}
+
+export interface RequestsByStatusChart {
+  status: string;
+  statusLabel: string;
+  count: number;
+  color: string;
+}
+
+// =============================================================================
+// Tipos para Filtros do Admin
+// =============================================================================
+
+export interface RequestFilters {
+  status?: string;
+  serviceId?: string;
+  categoryId?: string;
+  neighborhood?: string;
+  origin?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  slaBreached?: boolean;
+  assigneeId?: string;
+  search?: string;
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+// =============================================================================
+// Tipos para Acessibilidade
+// =============================================================================
+
 export type FontSize = 'normal' | 'large' | 'larger';
 export type ContrastMode = 'normal' | 'high';
 

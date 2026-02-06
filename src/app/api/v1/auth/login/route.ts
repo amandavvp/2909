@@ -1,6 +1,6 @@
 // =============================================================================
-// Compatibilidade: Redireciona para API v1
-// POST /api/auth/login -> /api/v1/auth/login
+// POST /api/v1/auth/login
+// Autenticação de usuário com CPF e senha
 // =============================================================================
 
 import { NextRequest, NextResponse } from "next/server";
@@ -12,6 +12,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { cpf, password } = body;
 
+    // Validações
     if (!cpf || !password) {
       return NextResponse.json(
         { success: false, error: "CPF e senha são obrigatórios" },
@@ -26,7 +27,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const result = await loginUser(cpf, password);
+    if (password.length < 6) {
+      return NextResponse.json(
+        { success: false, error: "Senha deve ter pelo menos 6 caracteres" },
+        { status: 400 }
+      );
+    }
+
+    // Metadados da requisição
+    const metadata = {
+      ipAddress: request.headers.get("x-forwarded-for") || 
+                 request.headers.get("x-real-ip") || undefined,
+      userAgent: request.headers.get("user-agent") || undefined,
+    };
+
+    const result = await loginUser(cpf, password, metadata);
 
     if (!result.success) {
       return NextResponse.json(
@@ -35,6 +50,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Definir cookie httpOnly com o token
     const response = NextResponse.json({
       success: true,
       data: { user: result.user },
@@ -45,7 +61,7 @@ export async function POST(request: NextRequest) {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
-      maxAge: 8 * 60 * 60,
+      maxAge: 8 * 60 * 60, // 8 horas
       path: "/",
     });
 

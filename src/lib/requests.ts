@@ -1,15 +1,25 @@
-import { Request, RequestStatus, RequestHistoryItem } from "@/types";
+// =============================================================================
+// Gerenciamento de Solicitações - Camada de Negócio
+// =============================================================================
+
+import prisma from "./db";
 import { generateProtocol } from "./utils";
+import type { RequestFilters, DashboardStats, PaginatedResponse } from "@/types";
 
-// Simulação de banco de dados - em produção, usar banco real
-const requests: Map<string, Request> = new Map();
+const SLA_HOURS_BY_PRIORITY: Record<string, number> = {
+  LOW: 240,
+  NORMAL: 120,
+  HIGH: 48,
+  URGENT: 24,
+};
 
-// Criar nova solicitação
+// =============================================================================
+// CRIAR SOLICITAÇÃO
+// =============================================================================
+
 export async function createRequest(data: {
   userId?: string;
   serviceId: string;
-  serviceName: string;
-  categoryName: string;
   description: string;
   address?: {
     street: string;
@@ -21,38 +31,68 @@ export async function createRequest(data: {
     zipCode: string;
   };
   isAnonymous: boolean;
+  origin?: string;
+  extraData?: Record<string, unknown>;
 }): Promise<{ success: boolean; protocol?: string; error?: string }> {
   try {
+    const service = await prisma.service.findUnique({
+      where: { id: data.serviceId },
+      include: { category: true },
+    });
+
+    if (!service) {
+      return { success: false, error: "Serviço não encontrado" };
+    }
+
     const protocol = generateProtocol();
-    const now = new Date();
-    
-    const request: Request = {
-      id: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      protocol,
-      userId: data.isAnonymous ? "anonymous" : (data.userId || "guest"),
-      serviceId: data.serviceId,
-      serviceName: data.serviceName,
-      categoryName: data.categoryName,
-      status: "pending",
-      description: data.description,
-      address: data.address,
-      attachments: [],
-      createdAt: now,
-      updatedAt: now,
-      history: [
-        {
-          id: `hist_${Date.now()}`,
-          status: "pending",
-          message: "Solicitação registrada no sistema.",
-          createdAt: now,
-          isPublic: true,
+    const slaHours = service.slaHours || SLA_HOURS_BY_PRIORITY[service.slaPriority] || 120;
+    const slaDeadline = new Date(Date.now() + slaHours * 60 * 60 * 1000);
+
+    const request = await prisma.serviceRequest.create({
+      data: {
+        protocol,
+        userId: data.isAnonymous ? null : (data.userId || null),
+        serviceId: data.serviceId,
+        description: data.description,
+        status: "PENDING",
+        origin: data.origin || "PORTAL",
+        isAnonymous: data.isAnonymous,
+        slaDeadline,
+        extraData: data.extraData ? JSON.stringify(data.extraData) : null,
+        ...(data.address && {
+          address: {
+            create: {
+              street: data.address.street,
+              number: data.address.number,
+              complement: data.address.complement || null,
+              neighborhood: data.address.neighborhood,
+              city: data.address.city || "Belford Roxo",
+              state: data.address.state || "RJ",
+              zipCode: data.address.zipCode,
+            },
+          },
+        }),
+        history: {
+          create: {
+            toStatus: "PENDING",
+            message: "Solicitação registrada no sistema.",
+            isPublic: true,
+            userId: data.userId || null,
+          },
         },
-      ],
-      isAnonymous: data.isAnonymous,
-    };
-    
-    requests.set(protocol, request);
-    
+      },
+    });
+
+    await prisma.auditLog.create({
+      data: {
+        userId: data.userId || null,
+        action: "CREATE",
+        entity: "service_requests",
+        entityId: request.id,
+        newValues: JSON.stringify({ protocol, serviceId: data.serviceId, origin: data.origin || "PORTAL" }),
+      },
+    });
+
     return { success: true, protocol };
   } catch (error) {
     console.error("Erro ao criar solicitação:", error);
@@ -60,104 +100,358 @@ export async function createRequest(data: {
   }
 }
 
-// Buscar solicitação por protocolo
-export async function getRequestByProtocol(
-  protocol: string
-): Promise<Request | null> {
-  return requests.get(protocol) || null;
+// =============================================================================
+// BUSCAR SOLICITAÇÃO POR PROTOCOLO
+// =============================================================================
+
+export async function getRequestByProtocol(protocol: string) {
+  return prisma.serviceRequest.findUnique({
+    where: { protocol: protocol.toUpperCase() },
+    include: {
+      service: { include: { category: true } },
+      address: true,
+      attachments: true,
+      history: { orderBy: { createdAt: "asc" } },
+      comments: {
+        where: { isInternal: false },
+        include: { user: { select: { name: true } } },
+        orderBy: { createdAt: "asc" },
+      },
+      user: { select: { name: true, email: true } },
+      assignee: { select: { name: true } },
+      department: { select: { name: true } },
+    },
+  });
 }
 
-// Buscar solicitações do usuário
-export async function getRequestsByUser(userId: string): Promise<Request[]> {
-  const userRequests: Request[] = [];
-  
-  for (const request of requests.values()) {
-    if (request.userId === userId) {
-      userRequests.push(request);
-    }
-  }
-  
-  return userRequests.sort(
-    (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
-  );
-}
+// =============================================================================
+// BUSCAR SOLICITAÇÃO POR PROTOCOLO (VERSÃO PÚBLICA - LGPD)
+// =============================================================================
 
-// Atualizar status da solicitação
-export async function updateRequestStatus(
-  protocol: string,
-  status: RequestStatus,
-  message: string
-): Promise<{ success: boolean; error?: string }> {
-  const request = requests.get(protocol);
-  
-  if (!request) {
-    return { success: false, error: "Solicitação não encontrada" };
-  }
-  
-  const now = new Date();
-  const historyItem: RequestHistoryItem = {
-    id: `hist_${Date.now()}`,
-    status,
-    message,
-    createdAt: now,
-    isPublic: true,
-  };
-  
-  request.status = status;
-  request.updatedAt = now;
-  request.history.push(historyItem);
-  
-  requests.set(protocol, request);
-  
-  return { success: true };
-}
+export async function getPublicRequestByProtocol(protocol: string) {
+  const request = await getRequestByProtocol(protocol);
+  if (!request) return null;
 
-// Validação de dados sensíveis (LGPD)
-export function sanitizeRequestForPublic(request: Request): Partial<Request> {
-  // Remove dados sensíveis para consulta pública
   return {
     protocol: request.protocol,
-    serviceName: request.serviceName,
-    categoryName: request.categoryName,
+    serviceName: request.service.name,
+    categoryName: request.service.category.name,
     status: request.status,
     description: request.description,
-    address: request.address,
+    address: request.address ? {
+      neighborhood: request.address.neighborhood,
+      city: request.address.city,
+    } : null,
     createdAt: request.createdAt,
     updatedAt: request.updatedAt,
-    history: request.history.filter((h) => h.isPublic),
+    resolvedAt: request.resolvedAt,
+    slaDeadline: request.slaDeadline,
+    slaBreached: request.slaBreached,
+    history: request.history
+      .filter(h => h.isPublic)
+      .map(h => ({
+        status: h.toStatus,
+        message: h.message,
+        createdAt: h.createdAt,
+      })),
   };
 }
 
-// Estatísticas
-export async function getRequestStats(): Promise<{
-  total: number;
-  pending: number;
-  inProgress: number;
-  resolved: number;
-}> {
-  let pending = 0;
-  let inProgress = 0;
-  let resolved = 0;
-  
-  for (const request of requests.values()) {
-    switch (request.status) {
-      case "pending":
-        pending++;
-        break;
-      case "in_progress":
-        inProgress++;
-        break;
-      case "resolved":
-      case "closed":
-        resolved++;
-        break;
-    }
+// =============================================================================
+// LISTAR SOLICITAÇÕES COM FILTROS (ADMIN)
+// =============================================================================
+
+export async function listRequests(filters: RequestFilters): Promise<PaginatedResponse<unknown>> {
+  const page = filters.page || 1;
+  const limit = filters.limit || 20;
+  const skip = (page - 1) * limit;
+
+  const where: Record<string, unknown> = {};
+
+  if (filters.status) where.status = filters.status;
+  if (filters.serviceId) where.serviceId = filters.serviceId;
+  if (filters.origin) where.origin = filters.origin;
+  if (filters.assigneeId) where.assigneeId = filters.assigneeId;
+  if (filters.slaBreached !== undefined) where.slaBreached = filters.slaBreached;
+
+  if (filters.categoryId) {
+    where.service = { categoryId: filters.categoryId };
   }
-  
+
+  if (filters.neighborhood) {
+    where.address = { neighborhood: { contains: filters.neighborhood } };
+  }
+
+  if (filters.dateFrom || filters.dateTo) {
+    where.createdAt = {};
+    if (filters.dateFrom) (where.createdAt as Record<string, unknown>).gte = new Date(filters.dateFrom);
+    if (filters.dateTo) (where.createdAt as Record<string, unknown>).lte = new Date(filters.dateTo + "T23:59:59");
+  }
+
+  if (filters.search) {
+    where.OR = [
+      { protocol: { contains: filters.search } },
+      { description: { contains: filters.search } },
+    ];
+  }
+
+  const orderBy: Record<string, string> = {};
+  orderBy[filters.sortBy || "createdAt"] = filters.sortOrder || "desc";
+
+  const [data, total] = await Promise.all([
+    prisma.serviceRequest.findMany({
+      where: where as never,
+      include: {
+        service: { include: { category: true } },
+        address: true,
+        user: { select: { name: true, email: true, cpf: true } },
+        assignee: { select: { name: true } },
+        department: { select: { name: true } },
+        _count: { select: { attachments: true, comments: true } },
+      },
+      orderBy: orderBy as never,
+      skip,
+      take: limit,
+    }),
+    prisma.serviceRequest.count({ where: where as never }),
+  ]);
+
+  return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
+}
+
+// =============================================================================
+// ATUALIZAR STATUS
+// =============================================================================
+
+export async function updateRequestStatus(
+  protocol: string,
+  status: string,
+  message: string,
+  userId?: string,
+  userName?: string,
+  isPublic = true
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const request = await prisma.serviceRequest.findUnique({ where: { protocol } });
+
+    if (!request) {
+      return { success: false, error: "Solicitação não encontrada" };
+    }
+
+    const oldStatus = request.status;
+
+    if (!isValidStatusTransition(oldStatus, status)) {
+      return { success: false, error: `Transição de ${oldStatus} para ${status} não é permitida` };
+    }
+
+    const updateData: Record<string, unknown> = { status, updatedAt: new Date() };
+    if (status === "RESOLVED") updateData.resolvedAt = new Date();
+    if (status === "CLOSED") updateData.closedAt = new Date();
+
+    await prisma.$transaction([
+      prisma.serviceRequest.update({
+        where: { protocol },
+        data: updateData as never,
+      }),
+      prisma.requestHistory.create({
+        data: {
+          requestId: request.id,
+          fromStatus: oldStatus,
+          toStatus: status,
+          message,
+          isPublic,
+          userId,
+          userName,
+        },
+      }),
+      prisma.auditLog.create({
+        data: {
+          userId,
+          action: "STATUS_CHANGE",
+          entity: "service_requests",
+          entityId: request.id,
+          oldValues: JSON.stringify({ status: oldStatus }),
+          newValues: JSON.stringify({ status }),
+        },
+      }),
+    ]);
+
+    return { success: true };
+  } catch (error) {
+    console.error("Erro ao atualizar status:", error);
+    return { success: false, error: "Erro interno ao atualizar status" };
+  }
+}
+
+// =============================================================================
+// VALIDAÇÃO DE TRANSIÇÕES DE STATUS
+// =============================================================================
+
+const VALID_TRANSITIONS: Record<string, string[]> = {
+  PENDING: ["IN_PROGRESS", "FORWARDED", "CANCELLED"],
+  IN_PROGRESS: ["WAITING_INFO", "FORWARDED", "RESOLVED", "CANCELLED"],
+  WAITING_INFO: ["IN_PROGRESS", "CANCELLED"],
+  FORWARDED: ["IN_PROGRESS", "RESOLVED"],
+  RESOLVED: ["CLOSED", "REOPENED"],
+  CLOSED: ["REOPENED"],
+  CANCELLED: [],
+  REOPENED: ["IN_PROGRESS", "FORWARDED"],
+};
+
+function isValidStatusTransition(from: string, to: string): boolean {
+  return VALID_TRANSITIONS[from]?.includes(to) ?? false;
+}
+
+// =============================================================================
+// ESTATÍSTICAS PARA DASHBOARD
+// =============================================================================
+
+export async function getDashboardStats(): Promise<DashboardStats> {
+  const now = new Date();
+  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const startOfWeek = new Date(startOfDay);
+  startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  const [
+    totalRequests, pendingRequests, inProgressRequests, resolvedRequests,
+    closedRequests, cancelledRequests, slaBreached,
+    todayRequests, weekRequests, monthRequests, resolvedWithTime,
+  ] = await Promise.all([
+    prisma.serviceRequest.count(),
+    prisma.serviceRequest.count({ where: { status: "PENDING" } }),
+    prisma.serviceRequest.count({ where: { status: "IN_PROGRESS" } }),
+    prisma.serviceRequest.count({ where: { status: "RESOLVED" } }),
+    prisma.serviceRequest.count({ where: { status: "CLOSED" } }),
+    prisma.serviceRequest.count({ where: { status: "CANCELLED" } }),
+    prisma.serviceRequest.count({ where: { slaBreached: true } }),
+    prisma.serviceRequest.count({ where: { createdAt: { gte: startOfDay } } }),
+    prisma.serviceRequest.count({ where: { createdAt: { gte: startOfWeek } } }),
+    prisma.serviceRequest.count({ where: { createdAt: { gte: startOfMonth } } }),
+    prisma.serviceRequest.findMany({
+      where: { resolvedAt: { not: null } },
+      select: { createdAt: true, resolvedAt: true },
+      take: 1000,
+      orderBy: { resolvedAt: "desc" },
+    }),
+  ]);
+
+  let avgResolutionHours = 0;
+  if (resolvedWithTime.length > 0) {
+    const totalHours = resolvedWithTime.reduce((sum, r) => {
+      if (r.resolvedAt) {
+        return sum + (r.resolvedAt.getTime() - r.createdAt.getTime()) / (1000 * 60 * 60);
+      }
+      return sum;
+    }, 0);
+    avgResolutionHours = Math.round(totalHours / resolvedWithTime.length);
+  }
+
   return {
-    total: requests.size,
-    pending,
-    inProgress,
-    resolved,
+    totalRequests, pendingRequests, inProgressRequests, resolvedRequests,
+    closedRequests, cancelledRequests, slaBreached, avgResolutionHours,
+    todayRequests, weekRequests, monthRequests,
   };
+}
+
+// =============================================================================
+// DADOS PARA GRÁFICOS
+// =============================================================================
+
+export async function getRequestsByStatusChart() {
+  const statusColors: Record<string, string> = {
+    PENDING: "#eab308", IN_PROGRESS: "#3b82f6", WAITING_INFO: "#f97316",
+    FORWARDED: "#8b5cf6", RESOLVED: "#22c55e", CLOSED: "#6b7280",
+    CANCELLED: "#ef4444", REOPENED: "#06b6d4",
+  };
+  const statusLabels: Record<string, string> = {
+    PENDING: "Aguardando", IN_PROGRESS: "Em andamento", WAITING_INFO: "Aguardando info",
+    FORWARDED: "Encaminhado", RESOLVED: "Resolvido", CLOSED: "Encerrado",
+    CANCELLED: "Cancelado", REOPENED: "Reaberto",
+  };
+
+  const results = await prisma.serviceRequest.groupBy({
+    by: ["status"],
+    _count: { id: true },
+  });
+
+  return results.map(r => ({
+    status: r.status,
+    statusLabel: statusLabels[r.status] || r.status,
+    count: r._count.id,
+    color: statusColors[r.status] || "#999",
+  }));
+}
+
+export async function getRequestsByPeriod(days = 30) {
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - days);
+
+  const requests = await prisma.serviceRequest.findMany({
+    where: { createdAt: { gte: startDate } },
+    select: { createdAt: true },
+    orderBy: { createdAt: "asc" },
+  });
+
+  const grouped: Record<string, number> = {};
+  requests.forEach(r => {
+    const date = r.createdAt.toISOString().split("T")[0];
+    grouped[date] = (grouped[date] || 0) + 1;
+  });
+
+  return Object.entries(grouped).map(([date, count]) => ({ date, count }));
+}
+
+export async function getRequestsByCategory() {
+  const results = await prisma.serviceRequest.groupBy({
+    by: ["serviceId"],
+    _count: { id: true },
+    orderBy: { _count: { id: "desc" } },
+    take: 10,
+  });
+
+  const services = await prisma.service.findMany({
+    where: { id: { in: results.map(r => r.serviceId) } },
+    include: { category: true },
+  });
+
+  return results.map(r => {
+    const service = services.find(s => s.id === r.serviceId);
+    return {
+      category: service?.category.name || "Desconhecido",
+      service: service?.name || "Desconhecido",
+      count: r._count.id,
+    };
+  });
+}
+
+export async function getRequestsByNeighborhood() {
+  const addresses = await prisma.address.findMany({
+    where: { requestId: { not: null } },
+    select: { neighborhood: true },
+  });
+
+  const grouped: Record<string, number> = {};
+  addresses.forEach(a => {
+    const key = a.neighborhood || "Não informado";
+    grouped[key] = (grouped[key] || 0) + 1;
+  });
+
+  return Object.entries(grouped)
+    .map(([neighborhood, count]) => ({ neighborhood, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 15);
+}
+
+export async function checkAndUpdateSlaBreaches(): Promise<number> {
+  const now = new Date();
+  const result = await prisma.serviceRequest.updateMany({
+    where: {
+      slaBreached: false,
+      slaDeadline: { lt: now },
+      status: { notIn: ["RESOLVED", "CLOSED", "CANCELLED"] },
+    },
+    data: { slaBreached: true },
+  });
+  return result.count;
 }

@@ -1,91 +1,39 @@
+// =============================================================================
+// Compatibilidade: POST /api/auth/register
+// =============================================================================
+
 import { NextRequest, NextResponse } from "next/server";
 import { registerUser } from "@/lib/auth";
-import { validateCPF, validateEmail, sanitizeHTML } from "@/lib/utils";
+import { validateCPF, validateEmail } from "@/lib/utils";
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, cpf, email, phone, password } = body;
+    const { name, cpf, email, phone, password, confirmPassword } = body;
 
-    // Validações de segurança
-    if (!name || !cpf || !email || !phone || !password) {
-      return NextResponse.json(
-        { error: "Todos os campos são obrigatórios" },
-        { status: 400 }
-      );
+    const errors: string[] = [];
+    if (!name || name.trim().length < 3) errors.push("Nome deve ter pelo menos 3 caracteres");
+    if (!cpf || !validateCPF(cpf)) errors.push("CPF inválido");
+    if (!email || !validateEmail(email)) errors.push("E-mail inválido");
+    if (!password || password.length < 8) errors.push("Senha deve ter pelo menos 8 caracteres");
+    if (password !== confirmPassword) errors.push("As senhas não coincidem");
+
+    if (errors.length > 0) {
+      return NextResponse.json({ success: false, error: errors.join("; ") }, { status: 400 });
     }
 
-    // Sanitização de inputs
-    const sanitizedName = sanitizeHTML(name.trim());
-    const sanitizedEmail = email.trim().toLowerCase();
-
-    // Validar nome
-    if (sanitizedName.length < 3 || sanitizedName.length > 100) {
-      return NextResponse.json(
-        { error: "Nome deve ter entre 3 e 100 caracteres" },
-        { status: 400 }
-      );
-    }
-
-    // Validar CPF
-    if (!validateCPF(cpf)) {
-      return NextResponse.json(
-        { error: "CPF inválido" },
-        { status: 400 }
-      );
-    }
-
-    // Validar email
-    if (!validateEmail(sanitizedEmail)) {
-      return NextResponse.json(
-        { error: "E-mail inválido" },
-        { status: 400 }
-      );
-    }
-
-    // Validar telefone (mínimo 10 dígitos)
-    const phoneDigits = phone.replace(/\D/g, "");
-    if (phoneDigits.length < 10 || phoneDigits.length > 11) {
-      return NextResponse.json(
-        { error: "Telefone inválido" },
-        { status: 400 }
-      );
-    }
-
-    // Validar senha
-    if (password.length < 6 || password.length > 50) {
-      return NextResponse.json(
-        { error: "Senha deve ter entre 6 e 50 caracteres" },
-        { status: 400 }
-      );
-    }
-
-    // Registrar usuário
-    const result = await registerUser({
-      name: sanitizedName,
-      cpf: cpf.replace(/\D/g, ""),
-      email: sanitizedEmail,
-      phone: phoneDigits,
-      password,
-    });
+    const result = await registerUser({ name, cpf, email, phone: phone || "", password });
 
     if (!result.success) {
-      return NextResponse.json(
-        { error: result.error },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, error: result.error }, { status: 409 });
     }
 
-    return NextResponse.json({
-      success: true,
-      message: "Cadastro realizado com sucesso",
-      userId: result.userId,
-    });
+    return NextResponse.json(
+      { success: true, data: { userId: result.userId }, message: "Conta criada com sucesso!" },
+      { status: 201 }
+    );
   } catch (error) {
     console.error("Erro no registro:", error);
-    return NextResponse.json(
-      { error: "Erro interno do servidor" },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, error: "Erro interno" }, { status: 500 });
   }
 }

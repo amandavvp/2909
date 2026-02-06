@@ -109,7 +109,10 @@ export default function AuthPage() {
       });
       
       if (response.ok) {
-        window.location.href = "/";
+        // Redirecionar para URL de retorno se especificada (ex: /admin)
+        const params = new URLSearchParams(window.location.search);
+        const redirectTo = params.get("redirect") || "/";
+        window.location.href = redirectTo;
       } else {
         const data = await response.json();
         setErrors({ form: data.error || "Erro ao fazer login" });

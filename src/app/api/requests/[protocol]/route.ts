@@ -1,9 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getRequestByProtocol, sanitizeRequestForPublic } from "@/lib/requests";
+// =============================================================================
+// Compatibilidade: GET /api/requests/:protocol
+// =============================================================================
 
-// Consultar solicitação por protocolo
+import { NextRequest, NextResponse } from "next/server";
+import { getPublicRequestByProtocol } from "@/lib/requests";
+
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ protocol: string }> }
 ) {
   try {
@@ -11,32 +14,22 @@ export async function GET(
 
     if (!protocol || protocol.length < 6) {
       return NextResponse.json(
-        { error: "Protocolo inválido" },
+        { success: false, error: "Protocolo inválido" },
         { status: 400 }
       );
     }
 
-    const requestData = await getRequestByProtocol(protocol.toUpperCase());
-
-    if (!requestData) {
+    const data = await getPublicRequestByProtocol(protocol);
+    if (!data) {
       return NextResponse.json(
-        { error: "Protocolo não encontrado" },
+        { success: false, error: "Protocolo não encontrado" },
         { status: 404 }
       );
     }
 
-    // Retornar dados sanitizados (sem informações sensíveis)
-    const publicData = sanitizeRequestForPublic(requestData);
-
-    return NextResponse.json({
-      success: true,
-      request: publicData,
-    });
+    return NextResponse.json({ success: true, data });
   } catch (error) {
     console.error("Erro ao buscar solicitação:", error);
-    return NextResponse.json(
-      { error: "Erro interno do servidor" },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, error: "Erro interno" }, { status: 500 });
   }
 }

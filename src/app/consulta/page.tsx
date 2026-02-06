@@ -62,51 +62,33 @@ function ConsultaContent() {
     setRequestData(null);
 
     try {
-      // Simulação de busca - em produção, chamar API
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const res = await fetch(`/api/v1/requests/${encodeURIComponent(protocolToSearch)}`);
+      const json = await res.json();
 
-      // Mock de dados para demonstração
-      if (protocolToSearch.length >= 6) {
+      if (json.success && json.data) {
+        const data = json.data;
         setRequestData({
-          protocol: protocolToSearch,
-          serviceName: "Buraco na Rua",
-          categoryName: "Conservação",
-          status: "in_progress",
-          description:
-            "Buraco grande na Rua das Flores, próximo ao número 123. O buraco está causando risco aos veículos que passam pelo local.",
-          address: "Rua das Flores, 123 - Centro, Belford Roxo - RJ",
-          createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-          updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-          history: [
-            {
-              status: "pending",
-              message: "Solicitação registrada no sistema.",
-              createdAt: new Date(
-                Date.now() - 7 * 24 * 60 * 60 * 1000
-              ).toISOString(),
-            },
-            {
-              status: "in_progress",
-              message:
-                "Solicitação encaminhada para a Secretaria de Conservação.",
-              createdAt: new Date(
-                Date.now() - 5 * 24 * 60 * 60 * 1000
-              ).toISOString(),
-            },
-            {
-              status: "in_progress",
-              message: "Equipe técnica agendou vistoria para os próximos dias.",
-              createdAt: new Date(
-                Date.now() - 2 * 24 * 60 * 60 * 1000
-              ).toISOString(),
-            },
-          ],
+          protocol: data.protocol,
+          serviceName: data.serviceName || data.service?.name || "Serviço",
+          categoryName: data.categoryName || data.service?.category?.name || "Categoria",
+          status: data.status?.toLowerCase().replace(/_/g, "_") || data.status,
+          description: data.description,
+          address: data.address
+            ? `${data.address.street || ""}, ${data.address.number || ""} - ${data.address.neighborhood || ""}, ${data.address.city || "Belford Roxo"}/${data.address.state || "RJ"}`
+            : undefined,
+          createdAt: data.createdAt,
+          updatedAt: data.updatedAt,
+          history: (data.history || []).map((h: { status?: string; toStatus?: string; message: string; createdAt: string }) => ({
+            status: (h.toStatus || h.status || "").toLowerCase(),
+            message: h.message,
+            createdAt: h.createdAt,
+          })),
         });
       } else {
-        setError("Protocolo não encontrado. Verifique o número e tente novamente.");
+        setError(json.error || "Protocolo não encontrado. Verifique o número e tente novamente.");
       }
     } catch {
-      setError("Erro ao buscar protocolo. Tente novamente.");
+      setError("Erro ao buscar protocolo. Tente novamente mais tarde.");
     } finally {
       setIsLoading(false);
     }

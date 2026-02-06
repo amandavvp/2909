@@ -13,7 +13,7 @@
   --color-accent-yellow: #eab308;
   --color-accent-green: #1abc9c;
   
-  /* Cores do header - azul escuro do site de Belford Roxo */
+  /* Cores do header */
   --color-header: #1e3a5f;
   --color-header-dark: #152a47;
   --color-nav: #1748ae;
@@ -27,12 +27,9 @@
   --animate-slide-up: slideUp 0.3s ease-out;
 }
 
-/* Fonte customizada para os números grandes (estilo 1746) */
-@font-face {
-  font-family: 'NumberFont';
-  src: local('Arial Black'), local('Arial-Black'), local('Helvetica Neue Black');
-  font-weight: 900;
-}
+/* =============================================================================
+   ANIMAÇÕES
+   ============================================================================= */
 
 @keyframes fadeIn {
   from { opacity: 0; }
@@ -44,9 +41,30 @@
   to { transform: translateY(0); opacity: 1; }
 }
 
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* =============================================================================
+   CAMADA BASE - Resets e Acessibilidade
+   ============================================================================= */
+
 @layer base {
   html {
     scroll-behavior: smooth;
+  }
+
+  /* Respeitar preferência do usuário por movimento reduzido (WCAG 2.3.3) */
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 
   body {
@@ -55,12 +73,21 @@
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   }
 
-  /* Acessibilidade - Foco visível */
+  /* Foco visível para acessibilidade (WCAG 2.4.7)
+     Anel de foco claro e consistente em TODOS os elementos interativos */
   *:focus-visible {
-    @apply outline-2 outline-offset-2 outline-blue-600;
+    outline: 3px solid #2563eb;
+    outline-offset: 2px;
+    border-radius: 2px;
   }
 
-  /* Classes para aumento de fonte */
+  /* Foco para alto contraste */
+  .high-contrast *:focus-visible {
+    outline: 3px solid #ffff00;
+    outline-offset: 2px;
+  }
+
+  /* Classes para aumento de fonte (WCAG 1.4.4 - Resize Text) */
   .font-size-normal {
     font-size: 100%;
   }
@@ -73,31 +100,52 @@
     font-size: 130%;
   }
 
-  /* Modo de alto contraste */
+  /* Modo de alto contraste (WCAG 1.4.3 - Contrast) */
   .high-contrast {
-    filter: contrast(1.25);
+    filter: contrast(1.4);
+  }
+
+  .high-contrast body {
+    background-color: #000 !important;
+    color: #fff !important;
   }
 
   .high-contrast * {
     border-color: currentColor !important;
   }
-}
 
-@layer components {
-  /* Número 2909 estilo 1746 */
-  .number-logo {
-    font-family: 'Arial Black', 'Helvetica Neue', Arial, sans-serif;
-    font-weight: 900;
-    letter-spacing: -0.02em;
+  /* Seleção de texto com contraste adequado */
+  ::selection {
+    background-color: #1748ae;
+    color: white;
   }
 
-  /* Botões */
+  /* Links: underline por padrão para acessibilidade (WCAG 1.4.1 - Use of Color) */
+  p a, li a, article a {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  p a:hover, li a:hover, article a:hover {
+    text-decoration-thickness: 2px;
+  }
+}
+
+/* =============================================================================
+   CAMADA DE COMPONENTES
+   ============================================================================= */
+
+@layer components {
+  /* Botão primário */
   .btn-primary {
     @apply inline-flex items-center justify-center px-4 py-2 rounded-md font-medium transition-all duration-200;
     @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2;
     @apply disabled:opacity-50 disabled:pointer-events-none;
     background-color: #1748ae;
     color: white;
+    /* Tamanho mínimo de toque 44x44px (WCAG 2.5.5) */
+    min-height: 44px;
+    min-width: 44px;
   }
 
   .btn-primary:hover {
@@ -110,6 +158,7 @@
     @apply disabled:opacity-50 disabled:pointer-events-none;
     background-color: #0094de;
     color: white;
+    min-height: 44px;
   }
 
   .btn-secondary:hover {
@@ -122,6 +171,7 @@
     @apply disabled:opacity-50 disabled:pointer-events-none;
     border: 2px solid #1748ae;
     color: #1748ae;
+    min-height: 44px;
   }
 
   .btn-outline:hover {
@@ -133,13 +183,14 @@
   .cartilha-btn {
     background-color: #1748ae;
     color: white;
+    min-height: 44px;
   }
 
   .cartilha-btn:hover {
     background-color: #0d3380;
   }
 
-  /* Container responsivo */
+  /* Container responsivo - mobile first */
   .container-main {
     @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
   }
@@ -156,6 +207,10 @@
   }
 }
 
+/* =============================================================================
+   CAMADA DE UTILITÁRIOS
+   ============================================================================= */
+
 @layer utilities {
   .text-truncate {
     @apply overflow-hidden text-ellipsis whitespace-nowrap;
@@ -169,6 +224,7 @@
     box-shadow: var(--shadow-card);
   }
 
+  /* Scrollbar estilizada */
   .scrollbar-thin {
     scrollbar-width: thin;
     scrollbar-color: #d1d5db transparent;
@@ -190,5 +246,22 @@
 
   .animate-in {
     animation: var(--animate-fade-in), var(--animate-slide-up);
+  }
+
+  .animate-spin {
+    animation: spin 1s linear infinite;
+  }
+
+  /* Sr-only (screen reader only) */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
   }
 }

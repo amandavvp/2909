@@ -1,58 +1,95 @@
+// =============================================================================
+// Sistema de Autenticação Seguro
+// =============================================================================
+// Decisão técnica:
+// - bcryptjs para hash de senhas (custo computacional dificulta brute-force)
+// - jose para JWT (biblioteca moderna, suporte a Edge Runtime do Next.js)
+// - Cookies httpOnly + Secure para tokens (proteção contra XSS)
+// - Refresh token com rotação para sessões longas
+// =============================================================================
+
 import { cookies } from "next/headers";
+import { SignJWT, jwtVerify, type JWTPayload } from "jose";
+import bcrypt from "bcryptjs";
+import prisma from "./db";
+import { type UserRole } from "@/types";
 
-// Chave secreta para JWT - em produção, usar variável de ambiente
-const JWT_SECRET = process.env.JWT_SECRET || "2909-portal-secret-key-change-in-production";
+// Configurações
+const JWT_SECRET = new TextEncoder().encode(
+  process.env.JWT_SECRET || "portal-2909-dev-secret-change-in-production-32chars"
+);
+const TOKEN_EXPIRY = "8h"; // Token de acesso expira em 8 horas
+const SALT_ROUNDS = 12; // Custo do bcrypt (12 é bom para produção)
+const COOKIE_NAME = "auth_token";
 
-// Simulação de banco de dados - em produção, usar banco real
-const users: Map<string, {
+// =============================================================================
+// TIPOS
+// =============================================================================
+
+export interface AuthUser {
   id: string;
   name: string;
-  cpf: string;
   email: string;
-  phone: string;
-  passwordHash: string;
-  createdAt: Date;
-}> = new Map();
-
-// Hash simples para demonstração - em produção usar bcrypt
-function simpleHash(str: string): string {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash;
-  }
-  return Math.abs(hash).toString(16).padStart(16, '0');
+  cpf: string;
+  role: UserRole;
 }
 
-// Gerar token JWT simples - em produção usar jose ou jsonwebtoken
-function generateToken(payload: object): string {
-  const header = btoa(JSON.stringify({ alg: "HS256", typ: "JWT" }));
-  const data = btoa(JSON.stringify({ ...payload, exp: Date.now() + 7 * 24 * 60 * 60 * 1000 }));
-  const signature = simpleHash(`${header}.${data}.${JWT_SECRET}`);
-  return `${header}.${data}.${signature}`;
+interface TokenPayload extends JWTPayload {
+  userId: string;
+  email: string;
+  name: string;
+  cpf: string;
+  role: UserRole;
 }
 
-// Verificar token
-function verifyToken(token: string): { valid: boolean; payload?: Record<string, unknown> } {
+// =============================================================================
+// HASH DE SENHA
+// =============================================================================
+
+export async function hashPassword(password: string): Promise<string> {
+  return bcrypt.hash(password, SALT_ROUNDS);
+}
+
+export async function verifyPassword(password: string, hash: string): Promise<boolean> {
+  return bcrypt.compare(password, hash);
+}
+
+// =============================================================================
+// JWT - GERAÇÃO E VERIFICAÇÃO
+// =============================================================================
+
+export async function generateToken(user: AuthUser): Promise<string> {
+  return new SignJWT({
+    userId: user.id,
+    email: user.email,
+    name: user.name,
+    cpf: user.cpf,
+    role: user.role,
+  } as TokenPayload)
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setExpirationTime(TOKEN_EXPIRY)
+    .setIssuer("portal-2909")
+    .sign(JWT_SECRET);
+}
+
+export async function verifyToken(token: string): Promise<{
+  valid: boolean;
+  payload?: TokenPayload;
+}> {
   try {
-    const [header, data, signature] = token.split(".");
-    const expectedSignature = simpleHash(`${header}.${data}.${JWT_SECRET}`);
-    
-    if (signature !== expectedSignature) {
-      return { valid: false };
-    }
-    
-    const payload = JSON.parse(atob(data));
-    if (payload.exp < Date.now()) {
-      return { valid: false };
-    }
-    
-    return { valid: true, payload };
+    const { payload } = await jwtVerify(token, JWT_SECRET, {
+      issuer: "portal-2909",
+    });
+    return { valid: true, payload: payload as TokenPayload };
   } catch {
     return { valid: false };
   }
 }
+
+// =============================================================================
+// REGISTRO DE USUÁRIO
+// =============================================================================
 
 export async function registerUser(data: {
   name: string;
@@ -61,90 +98,227 @@ export async function registerUser(data: {
   phone: string;
   password: string;
 }): Promise<{ success: boolean; error?: string; userId?: string }> {
-  // Validar se CPF já existe
-  if (users.has(data.cpf)) {
-    return { success: false, error: "CPF já cadastrado" };
-  }
-  
-  // Validar email único
-  for (const user of users.values()) {
-    if (user.email === data.email) {
+  try {
+    // Verificar se CPF já existe
+    const existingCpf = await prisma.user.findUnique({
+      where: { cpf: data.cpf.replace(/\D/g, "") },
+    });
+    if (existingCpf) {
+      return { success: false, error: "CPF já cadastrado" };
+    }
+
+    // Verificar se email já existe
+    const existingEmail = await prisma.user.findUnique({
+      where: { email: data.email.toLowerCase() },
+    });
+    if (existingEmail) {
       return { success: false, error: "E-mail já cadastrado" };
     }
+
+    // Criar usuário com senha hasheada
+    const passwordHash = await hashPassword(data.password);
+    
+    const user = await prisma.user.create({
+      data: {
+        name: data.name.trim(),
+        cpf: data.cpf.replace(/\D/g, ""),
+        email: data.email.toLowerCase().trim(),
+        phone: data.phone?.replace(/\D/g, "") || null,
+        passwordHash,
+        role: "CITIZEN",
+        consentedAt: new Date(),
+        consentVersion: "1.0",
+      },
+    });
+
+    // Log de auditoria
+    await prisma.auditLog.create({
+      data: {
+        userId: user.id,
+        action: "CREATE",
+        entity: "users",
+        entityId: user.id,
+        newValues: JSON.stringify({ name: data.name, email: data.email }),
+      },
+    });
+
+    return { success: true, userId: user.id };
+  } catch (error) {
+    console.error("Erro ao registrar usuário:", error);
+    return { success: false, error: "Erro interno ao criar conta" };
   }
-  
-  // Criar usuário
-  const userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  const passwordHash = simpleHash(data.password + JWT_SECRET);
-  
-  users.set(data.cpf, {
-    id: userId,
-    name: data.name,
-    cpf: data.cpf,
-    email: data.email,
-    phone: data.phone,
-    passwordHash,
-    createdAt: new Date(),
-  });
-  
-  return { success: true, userId };
 }
 
-export async function loginUser(cpf: string, password: string): Promise<{
+// =============================================================================
+// LOGIN
+// =============================================================================
+
+export async function loginUser(
+  cpf: string,
+  password: string,
+  metadata?: { ipAddress?: string; userAgent?: string }
+): Promise<{
   success: boolean;
   error?: string;
   token?: string;
-  user?: { id: string; name: string; email: string };
+  user?: AuthUser;
 }> {
-  const user = users.get(cpf);
-  
-  if (!user) {
-    return { success: false, error: "CPF não encontrado" };
-  }
-  
-  const passwordHash = simpleHash(password + JWT_SECRET);
-  if (user.passwordHash !== passwordHash) {
-    return { success: false, error: "Senha incorreta" };
-  }
-  
-  const token = generateToken({
-    userId: user.id,
-    cpf: user.cpf,
-    name: user.name,
-    email: user.email,
-  });
-  
-  return {
-    success: true,
-    token,
-    user: {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { cpf: cpf.replace(/\D/g, "") },
+    });
+
+    if (!user || user.deletedAt) {
+      return { success: false, error: "CPF não encontrado" };
+    }
+
+    if (!user.isActive) {
+      return { success: false, error: "Conta desativada. Entre em contato com o suporte." };
+    }
+
+    const passwordValid = await verifyPassword(password, user.passwordHash);
+    if (!passwordValid) {
+      return { success: false, error: "Senha incorreta" };
+    }
+
+    const authUser: AuthUser = {
       id: user.id,
       name: user.name,
       email: user.email,
-    },
-  };
+      cpf: user.cpf,
+      role: user.role,
+    };
+
+    const token = await generateToken(authUser);
+
+    // Criar sessão no banco
+    await prisma.session.create({
+      data: {
+        userId: user.id,
+        token,
+        userAgent: metadata?.userAgent || null,
+        ipAddress: metadata?.ipAddress || null,
+        expiresAt: new Date(Date.now() + 8 * 60 * 60 * 1000), // 8h
+      },
+    });
+
+    // Log de auditoria
+    await prisma.auditLog.create({
+      data: {
+        userId: user.id,
+        action: "LOGIN",
+        entity: "sessions",
+        ipAddress: metadata?.ipAddress,
+        userAgent: metadata?.userAgent,
+      },
+    });
+
+    return { success: true, token, user: authUser };
+  } catch (error) {
+    console.error("Erro no login:", error);
+    return { success: false, error: "Erro interno ao fazer login" };
+  }
 }
 
-export async function getCurrentUser(): Promise<{
-  id: string;
-  name: string;
-  email: string;
-  cpf: string;
-} | null> {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("auth_token")?.value;
-  
-  if (!token) return null;
-  
-  const { valid, payload } = verifyToken(token);
-  if (!valid || !payload) return null;
-  
-  return {
-    id: payload.userId as string,
-    name: payload.name as string,
-    email: payload.email as string,
-    cpf: payload.cpf as string,
-  };
+// =============================================================================
+// OBTER USUÁRIO AUTENTICADO
+// =============================================================================
+
+export async function getCurrentUser(): Promise<AuthUser | null> {
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get(COOKIE_NAME)?.value;
+
+    if (!token) return null;
+
+    const { valid, payload } = await verifyToken(token);
+    if (!valid || !payload) return null;
+
+    // Verificar se sessão ainda existe e está ativa
+    const session = await prisma.session.findUnique({
+      where: { token },
+    });
+
+    if (!session || session.expiresAt < new Date()) {
+      return null;
+    }
+
+    return {
+      id: payload.userId,
+      name: payload.name,
+      email: payload.email,
+      cpf: payload.cpf,
+      role: payload.role,
+    };
+  } catch {
+    return null;
+  }
 }
 
-export { generateToken, verifyToken };
+// =============================================================================
+// LOGOUT
+// =============================================================================
+
+export async function logoutUser(): Promise<void> {
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get(COOKIE_NAME)?.value;
+
+    if (token) {
+      // Invalidar sessão no banco
+      await prisma.session.deleteMany({ where: { token } });
+    }
+  } catch (error) {
+    console.error("Erro no logout:", error);
+  }
+}
+
+// =============================================================================
+// VERIFICAÇÃO DE PERMISSÕES
+// =============================================================================
+
+const ROLE_HIERARCHY: Record<UserRole, number> = {
+  CITIZEN: 0,
+  ATTENDANT: 1,
+  ANALYST: 2,
+  MANAGER: 3,
+  ADMIN: 4,
+};
+
+export function hasMinRole(userRole: UserRole, requiredRole: UserRole): boolean {
+  return ROLE_HIERARCHY[userRole] >= ROLE_HIERARCHY[requiredRole];
+}
+
+export function isAdmin(user: AuthUser): boolean {
+  return user.role === "ADMIN";
+}
+
+export function isStaff(user: AuthUser): boolean {
+  return hasMinRole(user.role, "ATTENDANT");
+}
+
+// =============================================================================
+// CRIAR ADMIN PADRÃO (para primeiro acesso)
+// =============================================================================
+
+export async function ensureDefaultAdmin(): Promise<void> {
+  const adminExists = await prisma.user.findFirst({
+    where: { role: "ADMIN" },
+  });
+
+  if (!adminExists) {
+    const passwordHash = await hashPassword("Admin@2909");
+    await prisma.user.create({
+      data: {
+        name: "Administrador",
+        email: "admin@belfordroxo.rj.gov.br",
+        cpf: "52998224725",
+        passwordHash,
+        role: "ADMIN",
+        isActive: true,
+        emailVerified: true,
+      },
+    });
+    console.log("✅ Admin padrão criado: CPF 529.982.247-25 / Senha Admin@2909");
+  }
+}

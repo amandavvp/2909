@@ -101,12 +101,29 @@ function SolicitacaoContent() {
   const handleSubmit = async () => {
     setIsLoading(true);
     try {
-      // Simulação de envio - em produção, enviar para API
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      
-      const newProtocol = generateProtocol();
-      setProtocol(newProtocol);
-      setCurrentStep(3);
+      const serviceData = service;
+      if (!serviceData) throw new Error("Serviço não encontrado");
+
+      const res = await fetch("/api/v1/requests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          serviceId: serviceData.id,
+          description,
+          address: address.zipCode ? address : undefined,
+          isAnonymous,
+          origin: "PORTAL",
+        }),
+      });
+
+      const json = await res.json();
+
+      if (json.success && json.data?.protocol) {
+        setProtocol(json.data.protocol);
+        setCurrentStep(3);
+      } else {
+        alert(json.error || "Erro ao enviar solicitação. Tente novamente.");
+      }
     } catch {
       alert("Erro ao enviar solicitação. Tente novamente.");
     } finally {
