@@ -44,6 +44,10 @@ export default function AdminDashboardPage() {
   const fetchDashboard = async () => {
     try {
       const res = await fetch("/api/v1/admin/dashboard");
+      if (res.status === 403 || res.status === 401) {
+        window.location.href = "/auth?redirect=/admin";
+        return;
+      }
       const json = await res.json();
       if (json.success) {
         setData(json.data);

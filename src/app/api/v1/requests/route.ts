@@ -8,17 +8,44 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser, isStaff } from "@/lib/auth";
 import { createRequest, listRequests } from "@/lib/requests";
 import { sanitizeHTML } from "@/lib/utils";
+import prisma from "@/lib/db";
 
 // POST - Criar solicitação
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { serviceId, description, address, isAnonymous, origin } = body;
+    let { serviceId } = body;
+    const { serviceSlug, categorySlug, description, address, isAnonymous, origin } = body;
+
+    // Se não tem serviceId direto, buscar por slug
+    if (!serviceId && serviceSlug && categorySlug) {
+      const category = await prisma.serviceCategory.findUnique({
+        where: { slug: categorySlug },
+      });
+      if (category) {
+        const service = await prisma.service.findFirst({
+          where: { slug: serviceSlug, categoryId: category.id },
+        });
+        if (service) {
+          serviceId = service.id;
+        }
+      }
+    }
+
+    // Se ainda não tem serviceId, tentar buscar só pelo slug do serviço
+    if (!serviceId && serviceSlug) {
+      const service = await prisma.service.findFirst({
+        where: { slug: serviceSlug },
+      });
+      if (service) {
+        serviceId = service.id;
+      }
+    }
 
     // Validações
     if (!serviceId) {
       return NextResponse.json(
-        { success: false, error: "ID do serviço é obrigatório" },
+        { success: false, error: "Serviço não encontrado" },
         { status: 400 }
       );
     }
@@ -97,6 +124,7 @@ export async function GET(request: NextRequest) {
       dateTo: searchParams.get("dateTo") || undefined,
       slaBreached: searchParams.get("slaBreached") === "true" ? true : undefined,
       assigneeId: searchParams.get("assigneeId") || undefined,
+      departmentId: searchParams.get("departmentId") || undefined,
       search: searchParams.get("search") || undefined,
       page: parseInt(searchParams.get("page") || "1"),
       limit: Math.min(parseInt(searchParams.get("limit") || "20"), 100),

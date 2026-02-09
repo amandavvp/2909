@@ -110,7 +110,7 @@ export interface ServiceRequest {
   comments?: RequestComment[];
   isAnonymous: boolean;
   assigneeName?: string;
-  departmentName?: string;
+  secretariaName?: string;
   rating?: number;
   ratingComment?: string;
 }
@@ -250,6 +250,7 @@ export interface RequestFilters {
   dateTo?: string;
   slaBreached?: boolean;
   assigneeId?: string;
+  departmentId?: string;
   search?: string;
   page?: number;
   limit?: number;

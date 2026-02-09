@@ -1,21 +1,36 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { ChevronRight, Upload, X, CheckCircle, Copy, AlertTriangle } from "lucide-react";
+import { ChevronRight, Upload, X, CheckCircle, Copy, AlertTriangle, Loader2 } from "lucide-react";
 import Steps from "@/components/ui/Steps";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
-import Sidebar from "@/components/layout/Sidebar";
-import { serviceCategories, getServiceBySlug, getCategoryBySlug } from "@/data/services";
-import { formatCEP, generateProtocol } from "@/lib/utils";
+import { formatCEP } from "@/lib/utils";
 
 const steps = [
   { id: 1, name: "INFORMAÇÃO" },
   { id: 2, name: "SOLICITAÇÃO" },
   { id: 3, name: "CONFIRMAÇÃO" },
 ];
+
+interface ServiceOption {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  slaHours: number;
+}
+
+interface CategoryOption {
+  id: string;
+  name: string;
+  slug: string;
+  icon: string;
+  description: string | null;
+  services: ServiceOption[];
+}
 
 function SolicitacaoContent() {
   const searchParams = useSearchParams();
@@ -26,9 +41,13 @@ function SolicitacaoContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [protocol, setProtocol] = useState("");
 
+  // Dados do banco
+  const [categories, setCategories] = useState<CategoryOption[]>([]);
+  const [loadingServices, setLoadingServices] = useState(true);
+
   // Step 1 - Seleção de serviço
-  const [selectedCategory, setSelectedCategory] = useState(categorySlug);
-  const [selectedService, setSelectedService] = useState(serviceSlug);
+  const [selectedCategoryId, setSelectedCategoryId] = useState("");
+  const [selectedServiceId, setSelectedServiceId] = useState("");
 
   // Step 2 - Dados da solicitação
   const [description, setDescription] = useState("");
@@ -44,20 +63,47 @@ function SolicitacaoContent() {
   const [files, setFiles] = useState<File[]>([]);
   const [isAnonymous, setIsAnonymous] = useState(false);
 
-  const category = getCategoryBySlug(selectedCategory);
-  const service = getServiceBySlug(selectedCategory, selectedService);
+  const selectedCategory = categories.find((c) => c.id === selectedCategoryId);
+  const selectedService = selectedCategory?.services.find((s) => s.id === selectedServiceId);
+
+  // Buscar categorias e serviços do banco
+  const fetchServices = useCallback(async () => {
+    try {
+      setLoadingServices(true);
+      const res = await fetch("/api/v1/services");
+      const json = await res.json();
+      if (json.success && json.data) {
+        setCategories(json.data);
+
+        // Se veio com slugs na URL, pré-selecionar
+        if (categorySlug) {
+          const cat = json.data.find((c: CategoryOption) => c.slug === categorySlug);
+          if (cat) {
+            setSelectedCategoryId(cat.id);
+            if (serviceSlug) {
+              const svc = cat.services.find((s: ServiceOption) => s.slug === serviceSlug);
+              if (svc) setSelectedServiceId(svc.id);
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Erro ao buscar serviços:", error);
+    } finally {
+      setLoadingServices(false);
+    }
+  }, [categorySlug, serviceSlug]);
 
   useEffect(() => {
-    if (categorySlug) setSelectedCategory(categorySlug);
-    if (serviceSlug) setSelectedService(serviceSlug);
-  }, [categorySlug, serviceSlug]);
+    fetchServices();
+  }, [fetchServices]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newFiles = Array.from(e.target.files || []);
     const validFiles = newFiles.filter(
       (file) => file.size <= 10 * 1024 * 1024 // 10MB max
     );
-    setFiles((prev) => [...prev, ...validFiles].slice(0, 5)); // Max 5 files
+    setFiles((prev) => [...prev, ...validFiles].slice(0, 5));
   };
 
   const removeFile = (index: number) => {
@@ -68,7 +114,6 @@ function SolicitacaoContent() {
     const formatted = formatCEP(value.replace(/\D/g, "").slice(0, 8));
     setAddress((prev) => ({ ...prev, zipCode: formatted }));
 
-    // Buscar CEP se completo
     if (formatted.replace(/\D/g, "").length === 8) {
       try {
         const response = await fetch(
@@ -91,9 +136,9 @@ function SolicitacaoContent() {
   };
 
   const handleNextStep = () => {
-    if (currentStep === 1 && selectedService) {
+    if (currentStep === 1 && selectedServiceId) {
       setCurrentStep(2);
-    } else if (currentStep === 2 && description) {
+    } else if (currentStep === 2 && description.length >= 20) {
       handleSubmit();
     }
   };
@@ -101,14 +146,13 @@ function SolicitacaoContent() {
   const handleSubmit = async () => {
     setIsLoading(true);
     try {
-      const serviceData = service;
-      if (!serviceData) throw new Error("Serviço não encontrado");
+      if (!selectedServiceId) throw new Error("Serviço não selecionado");
 
       const res = await fetch("/api/v1/requests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          serviceId: serviceData.id,
+          serviceId: selectedServiceId,
           description,
           address: address.zipCode ? address : undefined,
           isAnonymous,
@@ -135,12 +179,20 @@ function SolicitacaoContent() {
     navigator.clipboard.writeText(protocol);
   };
 
+  if (loadingServices) {
+    return (
+      <div className="container-main py-8">
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="animate-spin mr-3 text-primary" size={24} />
+          <span className="text-neutral-600">Carregando serviços...</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container-main py-8">
       <div className="flex flex-col lg:flex-row gap-8">
-        {/* Sidebar */}
-        <Sidebar activeCategory={selectedCategory} />
-
         {/* Conteúdo principal */}
         <div className="flex-1">
           {/* Breadcrumb */}
@@ -179,35 +231,35 @@ function SolicitacaoContent() {
                       Selecione a categoria *
                     </label>
                     <select
-                      value={selectedCategory}
+                      value={selectedCategoryId}
                       onChange={(e) => {
-                        setSelectedCategory(e.target.value);
-                        setSelectedService("");
+                        setSelectedCategoryId(e.target.value);
+                        setSelectedServiceId("");
                       }}
                       className="w-full px-4 py-3 border border-neutral-300 rounded-lg bg-white focus:border-primary focus:ring-2 focus:ring-primary/20"
                     >
                       <option value="">Selecione uma categoria</option>
-                      {serviceCategories.map((cat) => (
-                        <option key={cat.id} value={cat.slug}>
+                      {categories.map((cat) => (
+                        <option key={cat.id} value={cat.id}>
                           {cat.name}
                         </option>
                       ))}
                     </select>
                   </div>
 
-                  {selectedCategory && category && (
+                  {selectedCategoryId && selectedCategory && (
                     <div>
                       <label className="block text-sm font-medium text-neutral-700 mb-2">
                         Selecione o serviço *
                       </label>
                       <select
-                        value={selectedService}
-                        onChange={(e) => setSelectedService(e.target.value)}
+                        value={selectedServiceId}
+                        onChange={(e) => setSelectedServiceId(e.target.value)}
                         className="w-full px-4 py-3 border border-neutral-300 rounded-lg bg-white focus:border-primary focus:ring-2 focus:ring-primary/20"
                       >
                         <option value="">Selecione um serviço</option>
-                        {category.services.map((svc) => (
-                          <option key={svc.id} value={svc.slug}>
+                        {selectedCategory.services.map((svc) => (
+                          <option key={svc.id} value={svc.id}>
                             {svc.name}
                           </option>
                         ))}
@@ -215,13 +267,16 @@ function SolicitacaoContent() {
                     </div>
                   )}
 
-                  {service && (
+                  {selectedService && (
                     <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
                       <h3 className="font-medium text-primary mb-1">
-                        {service.name}
+                        {selectedService.name}
                       </h3>
                       <p className="text-sm text-neutral-600">
-                        {service.description}
+                        {selectedService.description}
+                      </p>
+                      <p className="text-xs text-neutral-500 mt-2">
+                        Prazo estimado: {selectedService.slaHours <= 24 ? `${selectedService.slaHours} horas` : `${Math.round(selectedService.slaHours / 24)} dias úteis`}
                       </p>
                     </div>
                   )}
@@ -229,7 +284,7 @@ function SolicitacaoContent() {
                   <div className="flex justify-end pt-4">
                     <Button
                       onClick={handleNextStep}
-                      disabled={!selectedService}
+                      disabled={!selectedServiceId}
                       rightIcon={<ChevronRight size={18} />}
                     >
                       Próximo
@@ -239,8 +294,15 @@ function SolicitacaoContent() {
               )}
 
               {/* Step 2 - Dados da solicitação */}
-              {currentStep === 2 && service && (
+              {currentStep === 2 && selectedService && (
                 <div className="space-y-6">
+                  {/* Info do serviço selecionado */}
+                  <div className="p-3 bg-neutral-50 rounded-lg border border-neutral-200">
+                    <p className="text-sm text-neutral-600">
+                      <span className="font-medium">Serviço:</span> {selectedCategory?.name} &gt; {selectedService.name}
+                    </p>
+                  </div>
+
                   {/* Descrição */}
                   <div>
                     <label className="block text-sm font-medium text-neutral-700 mb-2">
@@ -255,7 +317,9 @@ function SolicitacaoContent() {
                       required
                     />
                     <p className="mt-1 text-xs text-neutral-500">
-                      Mínimo de 20 caracteres. Seja específico para agilizar o atendimento.
+                      {description.length < 20
+                        ? `Mínimo de 20 caracteres (faltam ${20 - description.length})`
+                        : `${description.length} caracteres`}
                     </p>
                   </div>
 

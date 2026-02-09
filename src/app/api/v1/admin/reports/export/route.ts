@@ -73,7 +73,7 @@ export async function GET(request: NextRequest) {
         "Bairro",
         "Origem",
         "Atribuído a",
-        "Departamento",
+        "Secretaria",
         "SLA Expirado",
         "Data Resolução",
       ].join(";");
@@ -88,7 +88,7 @@ export async function GET(request: NextRequest) {
         r.address?.neighborhood || "",
         r.origin,
         r.assignee?.name || "",
-        r.department?.name || "",
+        r.department?.name || "Não definida",
         r.slaBreached ? "Sim" : "Não",
         r.resolvedAt?.toLocaleDateString("pt-BR") || "",
       ].join(";"));
@@ -119,7 +119,7 @@ export async function GET(request: NextRequest) {
         neighborhood: r.address?.neighborhood || "",
         origin: r.origin,
         assignee: r.assignee?.name || "",
-        department: r.department?.name || "",
+        secretaria: r.department?.name || "Não definida",
         slaBreached: r.slaBreached,
         resolvedAt: r.resolvedAt,
         citizenName: r.user?.name || "Anônimo",

@@ -1,10 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import Link from "next/link";
 import { Bell, LogOut, User, ChevronDown } from "lucide-react";
 
 export default function AdminHeader() {
   const [showMenu, setShowMenu] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    const fetchCount = async () => {
+      try {
+        const res = await fetch("/api/v1/admin/notificacoes?countOnly=true");
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success) setUnreadCount(json.unread || 0);
+        }
+      } catch {
+        // silenciar erro
+      }
+    };
+
+    fetchCount();
+    // Atualizar a cada 60 segundos
+    const interval = setInterval(fetchCount, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -28,15 +49,18 @@ export default function AdminHeader() {
       {/* Ações */}
       <div className="flex items-center gap-4">
         {/* Notificações */}
-        <button
+        <Link
+          href="/admin/notificacoes"
           className="relative p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
           title="Notificações"
         >
           <Bell size={20} />
-          <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 rounded-full text-[10px] text-white flex items-center justify-center font-bold">
-            3
-          </span>
-        </button>
+          {unreadCount > 0 && (
+            <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-red-500 rounded-full text-[10px] text-white flex items-center justify-center font-bold px-1">
+              {unreadCount > 99 ? "99+" : unreadCount}
+            </span>
+          )}
+        </Link>
 
         {/* Perfil */}
         <div className="relative">

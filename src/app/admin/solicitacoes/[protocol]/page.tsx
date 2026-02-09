@@ -52,15 +52,30 @@ interface RequestDetail {
   comments: { id: string; content: string; isInternal: boolean; user: { name: string }; createdAt: string }[];
 }
 
-const STATUS_OPTIONS = [
-  { value: "PENDING", label: "Aguardando análise" },
-  { value: "IN_PROGRESS", label: "Em andamento" },
-  { value: "WAITING_INFO", label: "Aguardando informações" },
-  { value: "FORWARDED", label: "Encaminhado" },
-  { value: "RESOLVED", label: "Resolvido" },
-  { value: "CLOSED", label: "Encerrado" },
-  { value: "CANCELLED", label: "Cancelado" },
-];
+const STATUS_OPTIONS: Record<string, { value: string; label: string }[]> = {
+  ALL: [
+    { value: "PENDING", label: "Aguardando análise" },
+    { value: "IN_PROGRESS", label: "Em andamento" },
+    { value: "WAITING_INFO", label: "Aguardando informações" },
+    { value: "FORWARDED", label: "Encaminhado" },
+    { value: "RESOLVED", label: "Resolvido" },
+    { value: "CLOSED", label: "Encerrado" },
+    { value: "CANCELLED", label: "Cancelado" },
+    { value: "REOPENED", label: "Reaberto" },
+  ],
+};
+
+// Transições válidas por status atual
+const VALID_TRANSITIONS: Record<string, string[]> = {
+  PENDING: ["IN_PROGRESS", "FORWARDED", "RESOLVED", "CANCELLED"],
+  IN_PROGRESS: ["WAITING_INFO", "FORWARDED", "RESOLVED", "CANCELLED"],
+  WAITING_INFO: ["IN_PROGRESS", "RESOLVED", "CANCELLED"],
+  FORWARDED: ["IN_PROGRESS", "RESOLVED", "CANCELLED"],
+  RESOLVED: ["CLOSED", "REOPENED"],
+  CLOSED: ["REOPENED"],
+  CANCELLED: ["REOPENED"],
+  REOPENED: ["IN_PROGRESS", "FORWARDED", "RESOLVED"],
+};
 
 const STATUS_COLORS: Record<string, string> = {
   PENDING: "bg-yellow-100 text-yellow-800 border-yellow-200",
@@ -99,6 +114,7 @@ export default function SolicitacaoDetailPage({
   const [statusMessage, setStatusMessage] = useState("");
   const [isPublicHistory, setIsPublicHistory] = useState(true);
   const [submittingStatus, setSubmittingStatus] = useState(false);
+  const [statusError, setStatusError] = useState("");
 
   // Estado para comentários
   const [commentText, setCommentText] = useState("");
@@ -115,7 +131,7 @@ export default function SolicitacaoDetailPage({
       const json = await res.json();
       if (json.success) {
         setRequest(json.data);
-        setNewStatus(json.data.status);
+        setNewStatus("");
       } else {
         setError(json.error || "Solicitação não encontrada");
       }
@@ -131,6 +147,7 @@ export default function SolicitacaoDetailPage({
     if (!newStatus || !statusMessage.trim()) return;
 
     setSubmittingStatus(true);
+    setStatusError("");
     try {
       const res = await fetch(`/api/v1/requests/${resolvedParams.protocol}`, {
         method: "PATCH",
@@ -144,12 +161,14 @@ export default function SolicitacaoDetailPage({
       const json = await res.json();
       if (json.success) {
         setStatusMessage("");
+        setNewStatus("");
+        setStatusError("");
         fetchRequest(); // Recarregar dados
       } else {
-        alert(json.error || "Erro ao atualizar status");
+        setStatusError(json.error || "Erro ao atualizar status");
       }
     } catch {
-      alert("Erro ao atualizar status");
+      setStatusError("Erro de conexão ao atualizar status");
     } finally {
       setSubmittingStatus(false);
     }
@@ -440,41 +459,67 @@ export default function SolicitacaoDetailPage({
           {/* Alterar Status */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <h3 className="font-semibold text-gray-800 mb-4">Alterar Status</h3>
-            <form onSubmit={handleStatusUpdate} className="space-y-3">
-              <select
-                value={newStatus}
-                onChange={(e) => setNewStatus(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
-              >
-                {STATUS_OPTIONS.map(opt => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-              </select>
-              <textarea
-                value={statusMessage}
-                onChange={(e) => setStatusMessage(e.target.value)}
-                rows={3}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm resize-none"
-                placeholder="Justificativa da alteração..."
-                required
-              />
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={isPublicHistory}
-                  onChange={(e) => setIsPublicHistory(e.target.checked)}
-                  className="rounded"
-                />
-                <span className="text-gray-600">Visível ao cidadão</span>
-              </label>
-              <button
-                type="submit"
-                disabled={!statusMessage.trim() || submittingStatus}
-                className="w-full py-2.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
-              >
-                {submittingStatus ? "Atualizando..." : "Atualizar Status"}
-              </button>
-            </form>
+            {(() => {
+              const allowedTransitions = VALID_TRANSITIONS[request.status] || [];
+              const availableOptions = STATUS_OPTIONS.ALL.filter(opt => allowedTransitions.includes(opt.value));
+
+              if (availableOptions.length === 0) {
+                return (
+                  <div className="text-center py-4">
+                    <CheckCircle size={24} className="mx-auto mb-2 text-gray-300" />
+                    <p className="text-sm text-gray-500">Não há transições disponíveis para o status atual.</p>
+                  </div>
+                );
+              }
+
+              return (
+                <form onSubmit={handleStatusUpdate} className="space-y-3">
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Novo status</label>
+                    <select
+                      value={newStatus}
+                      onChange={(e) => setNewStatus(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                    >
+                      <option value="">Selecione um status...</option>
+                      {availableOptions.map(opt => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Justificativa</label>
+                    <textarea
+                      value={statusMessage}
+                      onChange={(e) => setStatusMessage(e.target.value)}
+                      rows={3}
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm resize-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                      placeholder="Descreva o motivo da alteração..."
+                      required
+                    />
+                  </div>
+                  <label className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={isPublicHistory}
+                      onChange={(e) => setIsPublicHistory(e.target.checked)}
+                      className="rounded"
+                    />
+                    <span className="text-gray-600">Visível ao cidadão</span>
+                  </label>
+                  {statusError && (
+                    <p className="text-xs text-red-600 bg-red-50 px-3 py-2 rounded-lg">{statusError}</p>
+                  )}
+                  <button
+                    type="submit"
+                    disabled={!newStatus || !statusMessage.trim() || submittingStatus}
+                    className="w-full py-2.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors font-medium"
+                  >
+                    {submittingStatus ? "Atualizando..." : "Atualizar Status"}
+                  </button>
+                </form>
+              );
+            })()}
           </div>
 
           {/* Cidadão */}
@@ -538,9 +583,9 @@ export default function SolicitacaoDetailPage({
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Departamento:</span>
+                <span className="text-gray-600">Secretaria:</span>
                 <span className="font-medium">
-                  {request.department?.name || "Não definido"}
+                  {request.department?.name || "Não definida"}
                 </span>
               </div>
             </div>

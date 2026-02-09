@@ -100,21 +100,26 @@ model Address {
 // =============================================================================
 
 model ServiceCategory {
-  id          String    @id @default(cuid())
-  name        String
-  slug        String    @unique
-  description String?
-  icon        String
-  order       Int       @default(0)
-  isActive    Boolean   @default(true)
+  id            String      @id @default(cuid())
+  name          String
+  slug          String      @unique
+  description   String?
+  icon          String
+  order         Int         @default(0)
+  isActive      Boolean     @default(true)
   
-  services    Service[]
+  // Secretaria responsável por esta categoria
+  departmentId  String?
+  department    Department? @relation(fields: [departmentId], references: [id])
   
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  services      Service[]
+  
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 
   @@index([slug])
   @@index([isActive])
+  @@index([departmentId])
   @@map("service_categories")
 }
 
@@ -261,7 +266,7 @@ model Attachment {
 }
 
 // =============================================================================
-// DEPARTAMENTOS / SECRETARIAS
+// SECRETARIAS MUNICIPAIS
 // =============================================================================
 
 model Department {
@@ -274,6 +279,7 @@ model Department {
   isActive    Boolean   @default(true)
   
   requests    ServiceRequest[]
+  categories  ServiceCategory[]
   
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt

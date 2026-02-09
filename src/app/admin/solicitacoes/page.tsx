@@ -39,6 +39,7 @@ interface RequestListItem {
   address: { neighborhood: string } | null;
   user: { name: string; email: string } | null;
   assignee: { name: string } | null;
+  department: { name: string } | null;
   _count: { attachments: number; comments: number };
 }
 
@@ -104,6 +105,13 @@ export default function SolicitacoesPage() {
       params.set("limit", limit.toString());
 
       const res = await fetch(`/api/v1/requests?${params.toString()}`);
+      
+      if (res.status === 403 || res.status === 401) {
+        // Sessão expirada ou inválida - redirecionar para login
+        window.location.href = "/auth?redirect=/admin/solicitacoes";
+        return;
+      }
+
       const json = await res.json();
       
       if (json.success) {
@@ -272,6 +280,7 @@ export default function SolicitacoesPage() {
                 <tr className="bg-gray-50 border-b border-gray-200">
                   <th className="text-left py-3 px-4 font-medium text-gray-600">Protocolo</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-600">Serviço</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-600">Secretaria</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-600">Status</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-600">Bairro</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-600">Cidadão</th>
@@ -297,6 +306,11 @@ export default function SolicitacoesPage() {
                           {req.service.category.name}
                         </p>
                       </div>
+                    </td>
+                    <td className="py-3 px-4">
+                      <p className="text-gray-700 text-xs truncate max-w-36" title={req.department?.name || ""}>
+                        {req.department?.name ? req.department.name.split(" - ")[1] || req.department.name.split(" - ")[0] : "—"}
+                      </p>
                     </td>
                     <td className="py-3 px-4">
                       <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${

@@ -65,7 +65,7 @@ export default function RelatoriosPage() {
           "Bairro": r.neighborhood,
           "Origem": r.origin,
           "Responsável": r.assignee,
-          "Departamento": r.department,
+          "Secretaria": r.department,
           "SLA Expirado": r.slaBreached ? "Sim" : "Não",
           "Data Resolução": r.resolvedAt ? new Date(r.resolvedAt as string).toLocaleDateString("pt-BR") : "",
           "Cidadão": r.citizenName,

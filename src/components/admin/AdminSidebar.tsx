@@ -40,8 +40,8 @@ const menuItems = [
     icon: Users,
   },
   {
-    label: "Departamentos",
-    href: "/admin/departamentos",
+    label: "Secretarias",
+    href: "/admin/secretarias",
     icon: Building2,
   },
   {

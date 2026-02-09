@@ -48,6 +48,9 @@ export async function createRequest(data: {
     const slaHours = service.slaHours || SLA_HOURS_BY_PRIORITY[service.slaPriority] || 120;
     const slaDeadline = new Date(Date.now() + slaHours * 60 * 60 * 1000);
 
+    // Auto-atribuir secretaria responsável baseada na categoria
+    const departmentId = service.category.departmentId || null;
+
     const request = await prisma.serviceRequest.create({
       data: {
         protocol,
@@ -58,6 +61,7 @@ export async function createRequest(data: {
         origin: data.origin || "PORTAL",
         isAnonymous: data.isAnonymous,
         slaDeadline,
+        departmentId,
         extraData: data.extraData ? JSON.stringify(data.extraData) : null,
         ...(data.address && {
           address: {
@@ -172,6 +176,7 @@ export async function listRequests(filters: RequestFilters): Promise<PaginatedRe
   if (filters.serviceId) where.serviceId = filters.serviceId;
   if (filters.origin) where.origin = filters.origin;
   if (filters.assigneeId) where.assigneeId = filters.assigneeId;
+  if (filters.departmentId) where.departmentId = filters.departmentId;
   if (filters.slaBreached !== undefined) where.slaBreached = filters.slaBreached;
 
   if (filters.categoryId) {
@@ -288,14 +293,14 @@ export async function updateRequestStatus(
 // =============================================================================
 
 const VALID_TRANSITIONS: Record<string, string[]> = {
-  PENDING: ["IN_PROGRESS", "FORWARDED", "CANCELLED"],
+  PENDING: ["IN_PROGRESS", "FORWARDED", "RESOLVED", "CANCELLED"],
   IN_PROGRESS: ["WAITING_INFO", "FORWARDED", "RESOLVED", "CANCELLED"],
-  WAITING_INFO: ["IN_PROGRESS", "CANCELLED"],
-  FORWARDED: ["IN_PROGRESS", "RESOLVED"],
+  WAITING_INFO: ["IN_PROGRESS", "RESOLVED", "CANCELLED"],
+  FORWARDED: ["IN_PROGRESS", "RESOLVED", "CANCELLED"],
   RESOLVED: ["CLOSED", "REOPENED"],
   CLOSED: ["REOPENED"],
-  CANCELLED: [],
-  REOPENED: ["IN_PROGRESS", "FORWARDED"],
+  CANCELLED: ["REOPENED"],
+  REOPENED: ["IN_PROGRESS", "FORWARDED", "RESOLVED"],
 };
 
 function isValidStatusTransition(from: string, to: string): boolean {
