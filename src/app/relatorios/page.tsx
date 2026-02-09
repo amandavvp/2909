@@ -113,7 +113,7 @@ export default function RelatoriosPublicosPage() {
                 <PieChart>
                   <Pie data={charts.byStatus} cx="50%" cy="50%" innerRadius={55} outerRadius={95}
                     paddingAngle={3} dataKey="value" nameKey="name"
-                    label={({ name, percent }: { name: string; percent?: number }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
+                    label={({ name, percent }: { name?: string | number; percent?: number }) => `${name ?? ""} ${((percent ?? 0) * 100).toFixed(0)}%`}
                     labelLine={false} style={{ fontSize: 11 }}>
                     {charts.byStatus.map((e, i) => <Cell key={i} fill={e.color} />)}
                   </Pie>
