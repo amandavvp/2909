@@ -186,7 +186,7 @@ export async function loginUser(
       name: user.name,
       email: user.email,
       cpf: user.cpf,
-      role: user.role,
+      role: user.role as UserRole,
     };
 
     const token = await generateToken(authUser);
