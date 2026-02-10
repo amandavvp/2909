@@ -88,106 +88,280 @@ async function main() {
 
   // Mapeamento: categoria slug -> secretaria slug responsável
   const categoryToSecretaria: Record<string, string> = {
-    "conservacao": "semco",           // SEMCO - Conservação
-    "iluminacao": "semserp",          // SEMSERP - Serviços Públicos
-    "limpeza-urbana": "semserp",      // SEMSERP - Serviços Públicos
-    "ordem-publica": "semop",         // SEMOP - Ordem Urbana
-    "saude": "semus",                 // SEMUS - Saúde
-    "animais": "sempda",             // SEMPDA - Proteção e Defesa dos Animais
-    "transito-transporte": "semtmu",  // SEMTMU - Transportes e Mobilidade
-    "assistencia-social": "semasc",   // SEMASC - Assistência Social e Cidadania
-    "meio-ambiente": "semas",         // SEMAS - Meio Ambiente e Sustentabilidade
-    "acessibilidade": "semofs",       // SEMOFS - Obras, Infraestrutura e Saneamento
-    "defesa-civil": "semdec",         // SEMDEC - Defesa Civil
-    "educacao": "semed",              // SEMED - Educação
-    "habitacao": "semhurb",           // SEMHURB - Habitação e Urbanismo
-    "seguranca": "semsep",            // SEMSEP - Segurança Pública
+    "acessibilidade": "semofs",
+    "animais": "sempda",
+    "assistencia-social": "semasc",
+    "cidadania-direitos-humanos": "semasc",
+    "conservacao": "semco",
+    "cultura-esporte-lazer": "semc",
+    "defesa-civil": "semdec",
+    "educacao": "semed",
+    "empresas": "semic",
+    "iluminacao": "semserp",
+    "iptu-divida-nf": "semfa",
+    "lgbtqia": "semasc",
+    "limpeza-urbana": "semserp",
+    "mulher": "semm",
+    "obras-imoveis": "semofs",
+    "ordem-publica": "semop",
+    "processos-certidoes": "semad",
+    "procon": "semasc",
+    "protecao-dados": "semcti",
+    "saude": "semus",
+    "seguranca-publica": "semsep",
+    "servidor-publico": "semad",
+    "servico-funerario": "semserp",
+    "suporte-tecnico": "semcti",
+    "trabalho-emprego": "semtres",
+    "transporte": "semtmu",
+    "transito": "semtmu",
+    "meio-ambiente": "semas",
   };
 
   const categoriesData = [
     {
-      name: "Conservação", slug: "conservacao", icon: "Wrench",
-      description: "Serviços de manutenção e conservação de vias, calçadas e espaços públicos",
+      name: "Acessibilidade", slug: "acessibilidade", icon: "Accessibility",
+      description: "Serviços relacionados à acessibilidade urbana e inclusão de pessoas com deficiência",
       services: [
-        { name: "Buraco na Via", slug: "buraco-via", description: "Solicite o reparo de buracos em ruas e avenidas", slaHours: 120, slaPriority: "NORMAL" },
-        { name: "Calçada Danificada", slug: "calcada-danificada", description: "Reparo de calçadas quebradas ou irregulares", slaHours: 240, slaPriority: "LOW" },
-        { name: "Bueiro Entupido", slug: "bueiro-entupido", description: "Desentupimento de bueiros e galerias pluviais", slaHours: 48, slaPriority: "HIGH" },
+        { name: "Rampa de Acesso", slug: "rampa-acesso", description: "Solicitação de rampa de acesso em calçadas", slaHours: 240, slaPriority: "LOW" },
+        { name: "Vaga para Pessoa com Deficiência", slug: "vaga-deficiente", description: "Solicitação de vaga exclusiva para PcD", slaHours: 240, slaPriority: "LOW" },
+        { name: "Piso Tátil", slug: "piso-tatil", description: "Instalação de piso tátil em calçadas", slaHours: 240, slaPriority: "LOW" },
       ],
     },
     {
-      name: "Iluminação Pública", slug: "iluminacao", icon: "Lightbulb",
-      description: "Manutenção e instalação de iluminação pública",
-      services: [
-        { name: "Lâmpada Apagada", slug: "lampada-apagada", description: "Solicite a troca de lâmpadas queimadas em vias públicas", slaHours: 48, slaPriority: "HIGH" },
-        { name: "Poste Danificado", slug: "poste-danificado", description: "Reporte postes quebrados ou inclinados", slaHours: 24, slaPriority: "URGENT" },
-        { name: "Nova Instalação", slug: "nova-instalacao", description: "Solicite instalação de ponto de iluminação", slaHours: 240, slaPriority: "LOW" },
-      ],
-    },
-    {
-      name: "Limpeza Urbana", slug: "limpeza-urbana", icon: "Trash2",
-      description: "Coleta de lixo, varrição e limpeza de logradouros",
-      services: [
-        { name: "Coleta de Lixo", slug: "coleta-lixo", description: "Reporte problemas na coleta de lixo doméstico", slaHours: 24, slaPriority: "URGENT" },
-        { name: "Terreno Baldio Sujo", slug: "terreno-baldio", description: "Denuncie terrenos baldios com acúmulo de lixo", slaHours: 120, slaPriority: "NORMAL" },
-        { name: "Poda de Árvore", slug: "poda-arvore", description: "Solicite poda de árvores em vias públicas", slaHours: 240, slaPriority: "LOW" },
-      ],
-    },
-    {
-      name: "Ordem Pública", slug: "ordem-publica", icon: "ShieldCheck",
-      description: "Fiscalização, posturas e ordenamento urbano",
-      services: [
-        { name: "Comércio Irregular", slug: "comercio-irregular", description: "Denuncie estabelecimentos irregulares", slaHours: 120, slaPriority: "NORMAL" },
-        { name: "Poluição Sonora", slug: "poluicao-sonora", description: "Reporte excesso de barulho em estabelecimentos", slaHours: 48, slaPriority: "HIGH" },
-        { name: "Obra Irregular", slug: "obra-irregular", description: "Denuncie obras sem licença ou alvará", slaHours: 120, slaPriority: "NORMAL" },
-      ],
-    },
-    {
-      name: "Saúde", slug: "saude", icon: "HeartPulse",
-      description: "Serviços de saúde pública",
-      services: [
-        { name: "Dengue/Foco de Mosquito", slug: "dengue-foco", description: "Denuncie focos de água parada e criadouros de mosquito", slaHours: 24, slaPriority: "URGENT" },
-        { name: "Unidade de Saúde", slug: "unidade-saude", description: "Reclamações sobre unidades de saúde", slaHours: 120, slaPriority: "NORMAL" },
-      ],
-    },
-    {
-      name: "Animais", slug: "animais", icon: "Dog",
+      name: "Animais", slug: "animais", icon: "PawPrint",
       description: "Proteção animal e controle de zoonoses",
       services: [
-        { name: "Maus-tratos a Animais", slug: "maus-tratos", description: "Denuncie maus-tratos contra animais", slaHours: 24, slaPriority: "URGENT" },
-        { name: "Animais Silvestres", slug: "animais-silvestres", description: "Reporte presença de animais silvestres em área urbana", slaHours: 48, slaPriority: "HIGH" },
-        { name: "Vacinação de Animais", slug: "vacinacao-animais", description: "Informações sobre campanhas de vacinação", slaHours: 120, slaPriority: "NORMAL" },
-      ],
-    },
-    {
-      name: "Trânsito e Transporte", slug: "transito-transporte", icon: "Car",
-      description: "Sinalização, semáforos e transporte público",
-      services: [
-        { name: "Semáforo com Defeito", slug: "semaforo-defeito", description: "Reporte semáforos apagados ou com mau funcionamento", slaHours: 24, slaPriority: "URGENT" },
-        { name: "Sinalização", slug: "sinalizacao", description: "Solicite instalação ou reparo de placas de sinalização", slaHours: 120, slaPriority: "NORMAL" },
+        { name: "Resgate de Animais Silvestres", slug: "animais-silvestres", description: "Resgate de animais silvestres em área urbana", slaHours: 48, slaPriority: "HIGH" },
+        { name: "Maus Tratos a Animais", slug: "maus-tratos", description: "Denúncia de maus tratos a animais", slaHours: 24, slaPriority: "URGENT" },
+        { name: "Vacinação de Animais", slug: "vacinacao-animais", description: "Vacinação antirrábica para cães e gatos", slaHours: 120, slaPriority: "NORMAL" },
       ],
     },
     {
       name: "Assistência Social", slug: "assistencia-social", icon: "Heart",
       description: "Programas sociais e apoio ao cidadão",
       services: [
-        { name: "Cadastro Único", slug: "cadastro-unico", description: "Informações sobre o Cadastro Único (CadÚnico)", slaHours: 120, slaPriority: "NORMAL" },
-        { name: "Pessoa em Situação de Rua", slug: "pessoa-situacao-rua", description: "Solicite abordagem social", slaHours: 24, slaPriority: "URGENT" },
+        { name: "Cadastro Único", slug: "cadastro-unico", description: "Informações sobre o CadÚnico", slaHours: 120, slaPriority: "NORMAL" },
+        { name: "Atendimento no CRAS", slug: "cras-atendimento", description: "Proteção social básica às famílias", slaHours: 120, slaPriority: "NORMAL" },
+        { name: "Abordagem Social", slug: "abordagem-social", description: "Atendimento a pessoas em situação de rua", slaHours: 24, slaPriority: "URGENT" },
+      ],
+    },
+    {
+      name: "Cidadania e Direitos Humanos", slug: "cidadania-direitos-humanos", icon: "Users",
+      description: "Defesa dos direitos humanos e cidadania",
+      services: [
+        { name: "Denúncia de Violação de Direitos", slug: "denuncia-violacao-direitos", description: "Denuncie violações de direitos humanos", slaHours: 48, slaPriority: "HIGH" },
+        { name: "Mediação de Conflitos", slug: "mediacao-conflitos", description: "Resolução pacífica de conflitos comunitários", slaHours: 120, slaPriority: "NORMAL" },
+        { name: "Proteção ao Idoso", slug: "protecao-idoso", description: "Atendimento especializado para idosos", slaHours: 48, slaPriority: "HIGH" },
+      ],
+    },
+    {
+      name: "Conservação", slug: "conservacao", icon: "Wrench",
+      description: "Manutenção e conservação de vias, calçadas e espaços públicos",
+      services: [
+        { name: "Buraco na Rua", slug: "buraco-rua", description: "Reparo de buracos em vias públicas", slaHours: 120, slaPriority: "NORMAL" },
+        { name: "Calçada Danificada", slug: "calcada-danificada", description: "Reparo de calçadas quebradas", slaHours: 240, slaPriority: "LOW" },
+        { name: "Poda de Árvore", slug: "poda-arvore", description: "Poda de árvores em via pública", slaHours: 240, slaPriority: "LOW" },
+      ],
+    },
+    {
+      name: "Cultura, Esporte e Lazer", slug: "cultura-esporte-lazer", icon: "Palette",
+      description: "Eventos culturais, programas esportivos e atividades de lazer",
+      services: [
+        { name: "Agendamento de Espaço Cultural", slug: "agendamento-espaco-cultural", description: "Reserve espaços culturais municipais", slaHours: 120, slaPriority: "NORMAL" },
+        { name: "Inscrição em Programa Esportivo", slug: "inscricao-programa-esportivo", description: "Inscrição em atividades esportivas gratuitas", slaHours: 120, slaPriority: "NORMAL" },
+        { name: "Eventos Culturais", slug: "eventos-culturais", description: "Informações sobre eventos culturais do município", slaHours: 120, slaPriority: "NORMAL" },
+      ],
+    },
+    {
+      name: "Defesa Civil", slug: "defesa-civil", icon: "ShieldAlert",
+      description: "Emergências e prevenção de desastres",
+      services: [
+        { name: "Risco de Deslizamento", slug: "risco-deslizamento", description: "Área com risco de deslizamento de terra", slaHours: 24, slaPriority: "URGENT" },
+        { name: "Alagamento", slug: "alagamento", description: "Área alagada ou com risco de alagamento", slaHours: 24, slaPriority: "URGENT" },
+        { name: "Árvore Caída", slug: "arvore-caida", description: "Remoção de árvore caída sobre via", slaHours: 24, slaPriority: "URGENT" },
+      ],
+    },
+    {
+      name: "Educação", slug: "educacao", icon: "GraduationCap",
+      description: "Serviços de educação municipal",
+      services: [
+        { name: "Matrícula Escolar", slug: "matricula-escolar", description: "Matrícula na rede municipal de ensino", slaHours: 120, slaPriority: "NORMAL" },
+        { name: "Transporte Escolar", slug: "transporte-escolar", description: "Transporte escolar gratuito", slaHours: 120, slaPriority: "NORMAL" },
+        { name: "Merenda Escolar", slug: "merenda-escolar", description: "Reclamações sobre merenda escolar", slaHours: 48, slaPriority: "HIGH" },
+      ],
+    },
+    {
+      name: "Empresas", slug: "empresas", icon: "Building2",
+      description: "Serviços para empresas e empreendedores",
+      services: [
+        { name: "Alvará de Funcionamento", slug: "alvara-funcionamento", description: "Solicitação de alvará de funcionamento", slaHours: 240, slaPriority: "NORMAL" },
+        { name: "Consulta de Viabilidade", slug: "consulta-viabilidade", description: "Consulta de viabilidade para abertura de empresa", slaHours: 120, slaPriority: "NORMAL" },
+        { name: "Licença Sanitária Empresarial", slug: "licenca-sanitaria-empresa", description: "Licença sanitária para estabelecimentos", slaHours: 240, slaPriority: "NORMAL" },
+      ],
+    },
+    {
+      name: "Iluminação Pública", slug: "iluminacao", icon: "Lightbulb",
+      description: "Manutenção e instalação de iluminação pública",
+      services: [
+        { name: "Iluminação Pública", slug: "iluminacao-publica", description: "Reparo de lâmpadas e postes", slaHours: 48, slaPriority: "HIGH" },
+        { name: "Nova Iluminação", slug: "nova-iluminacao", description: "Instalação de novo ponto de luz", slaHours: 240, slaPriority: "LOW" },
+      ],
+    },
+    {
+      name: "IPTU, Dívida Ativa e Nota Fiscal", slug: "iptu-divida-nf", icon: "Receipt",
+      description: "Tributos municipais, dívida ativa e nota fiscal",
+      services: [
+        { name: "Segunda Via do IPTU", slug: "segunda-via-iptu", description: "Emissão de segunda via do IPTU", slaHours: 48, slaPriority: "NORMAL" },
+        { name: "Consulta Dívida Ativa", slug: "consulta-divida-ativa", description: "Consulta e parcelamento de dívida ativa", slaHours: 120, slaPriority: "NORMAL" },
+        { name: "Nota Fiscal Eletrônica", slug: "nota-fiscal-eletronica", description: "Emissão e consulta de NFS-e", slaHours: 48, slaPriority: "NORMAL" },
+      ],
+    },
+    {
+      name: "LGBTQIA+", slug: "lgbtqia", icon: "Rainbow",
+      description: "Serviços de proteção e inclusão da comunidade LGBTQIA+",
+      services: [
+        { name: "Denúncia de LGBTfobia", slug: "denuncia-lgbtfobia", description: "Denuncie crimes de LGBTfobia", slaHours: 48, slaPriority: "HIGH" },
+        { name: "Atendimento Especializado LGBTQIA+", slug: "atendimento-lgbtqia", description: "Apoio psicossocial e jurídico", slaHours: 120, slaPriority: "NORMAL" },
+        { name: "Retificação de Nome Social", slug: "retificacao-nome-social", description: "Uso do nome social em serviços municipais", slaHours: 120, slaPriority: "NORMAL" },
+      ],
+    },
+    {
+      name: "Limpeza Urbana", slug: "limpeza-urbana", icon: "Trash2",
+      description: "Coleta de lixo, varrição e limpeza de logradouros",
+      services: [
+        { name: "Coleta de Lixo", slug: "coleta-lixo", description: "Problemas com coleta de lixo domiciliar", slaHours: 24, slaPriority: "URGENT" },
+        { name: "Descarte Irregular de Lixo", slug: "descarte-irregular", description: "Denúncia de descarte irregular", slaHours: 72, slaPriority: "NORMAL" },
+        { name: "Limpeza de Terreno", slug: "limpeza-terreno", description: "Limpeza de terreno baldio", slaHours: 120, slaPriority: "NORMAL" },
+      ],
+    },
+    {
+      name: "Mulher", slug: "mulher", icon: "UserCircle",
+      description: "Serviços de proteção e apoio à mulher",
+      services: [
+        { name: "Violência Doméstica", slug: "violencia-domestica", description: "Apoio e orientação em casos de violência doméstica", slaHours: 24, slaPriority: "URGENT" },
+        { name: "Atendimento Psicológico", slug: "atendimento-psicologico-mulher", description: "Apoio psicológico para mulheres em situação de vulnerabilidade", slaHours: 48, slaPriority: "HIGH" },
+        { name: "Empoderamento Feminino", slug: "empoderamento-feminino", description: "Cursos de capacitação e autonomia", slaHours: 120, slaPriority: "NORMAL" },
       ],
     },
     {
       name: "Meio Ambiente", slug: "meio-ambiente", icon: "TreePine",
       description: "Preservação ambiental e sustentabilidade",
       services: [
-        { name: "Poluição Ambiental", slug: "poluicao-ambiental", description: "Denuncie poluição de rios, solo ou ar", slaHours: 48, slaPriority: "HIGH" },
-        { name: "Desmatamento", slug: "desmatamento", description: "Denuncie desmatamento irregular", slaHours: 48, slaPriority: "HIGH" },
+        { name: "Poluição Ambiental", slug: "poluicao-ambiental", description: "Denúncia de poluição de rios, solo ou ar", slaHours: 48, slaPriority: "HIGH" },
+        { name: "Desmatamento", slug: "desmatamento", description: "Denúncia de desmatamento irregular", slaHours: 48, slaPriority: "HIGH" },
       ],
     },
     {
-      name: "Acessibilidade", slug: "acessibilidade", icon: "Accessibility",
-      description: "Melhorias de acessibilidade em espaços públicos",
+      name: "Obras e Imóveis", slug: "obras-imoveis", icon: "HardHat",
+      description: "Licenciamento de obras e fiscalização de imóveis",
       services: [
-        { name: "Rampa de Acessibilidade", slug: "rampa-acessibilidade", description: "Solicite construção ou reparo de rampas", slaHours: 240, slaPriority: "LOW" },
-        { name: "Piso Tátil", slug: "piso-tatil", description: "Solicite instalação de piso tátil em calçadas", slaHours: 240, slaPriority: "LOW" },
+        { name: "Alvará de Construção", slug: "alvara-construcao", description: "Licença para construção ou reforma", slaHours: 240, slaPriority: "NORMAL" },
+        { name: "Habite-se", slug: "habite-se", description: "Certificado de conclusão de obra", slaHours: 240, slaPriority: "NORMAL" },
+        { name: "Denúncia de Obra Irregular", slug: "denuncia-obra-irregular", description: "Denúncia de obra sem licença", slaHours: 120, slaPriority: "HIGH" },
+      ],
+    },
+    {
+      name: "Ordem Pública", slug: "ordem-publica", icon: "ShieldCheck",
+      description: "Fiscalização, posturas e ordenamento urbano",
+      services: [
+        { name: "Poluição Sonora", slug: "poluicao-sonora", description: "Excesso de barulho em estabelecimentos", slaHours: 48, slaPriority: "HIGH" },
+        { name: "Comércio Irregular", slug: "comercio-irregular", description: "Estabelecimentos irregulares", slaHours: 120, slaPriority: "NORMAL" },
+        { name: "Ocupação Irregular de Via", slug: "ocupacao-irregular-via", description: "Ocupação irregular de via pública", slaHours: 120, slaPriority: "NORMAL" },
+      ],
+    },
+    {
+      name: "Processos e Certidões", slug: "processos-certidoes", icon: "FileText",
+      description: "Certidões, processos administrativos e documentos",
+      services: [
+        { name: "Certidão Negativa de Débitos", slug: "certidao-negativa-debitos", description: "Emissão de certidão negativa municipal", slaHours: 120, slaPriority: "NORMAL" },
+        { name: "Certidão de Uso do Solo", slug: "certidao-uso-solo", description: "Certidão de uso e ocupação do solo", slaHours: 240, slaPriority: "LOW" },
+        { name: "Consulta de Processo", slug: "consulta-processo-administrativo", description: "Consulta de processo administrativo", slaHours: 120, slaPriority: "NORMAL" },
+      ],
+    },
+    {
+      name: "Procon", slug: "procon", icon: "Scale",
+      description: "Defesa do consumidor",
+      services: [
+        { name: "Reclamação de Consumidor", slug: "reclamacao-consumidor", description: "Registre reclamação contra fornecedor", slaHours: 120, slaPriority: "NORMAL" },
+        { name: "Orientação ao Consumidor", slug: "orientacao-consumidor", description: "Orientação sobre direitos do consumidor", slaHours: 120, slaPriority: "NORMAL" },
+        { name: "Audiência de Conciliação", slug: "audiencia-conciliacao", description: "Agendamento de audiência de conciliação", slaHours: 240, slaPriority: "NORMAL" },
+      ],
+    },
+    {
+      name: "Proteção de Dados", slug: "protecao-dados", icon: "ShieldHalf",
+      description: "Lei Geral de Proteção de Dados (LGPD)",
+      services: [
+        { name: "Acesso a Dados Pessoais", slug: "acesso-dados-pessoais", description: "Solicite acesso aos seus dados pessoais", slaHours: 120, slaPriority: "NORMAL" },
+        { name: "Exclusão de Dados", slug: "exclusao-dados", description: "Solicite exclusão de dados pessoais", slaHours: 240, slaPriority: "NORMAL" },
+      ],
+    },
+    {
+      name: "Saúde e Vigilância Sanitária", slug: "saude", icon: "Stethoscope",
+      description: "Serviços de saúde pública e vigilância sanitária",
+      services: [
+        { name: "Foco de Dengue", slug: "dengue", description: "Denúncia de foco de dengue", slaHours: 24, slaPriority: "URGENT" },
+        { name: "Unidades de Saúde", slug: "unidade-saude", description: "Informações sobre unidades de saúde", slaHours: 120, slaPriority: "NORMAL" },
+        { name: "Denúncia Sanitária", slug: "denuncia-sanitaria", description: "Denúncia de irregularidade sanitária", slaHours: 48, slaPriority: "HIGH" },
+      ],
+    },
+    {
+      name: "Segurança Pública", slug: "seguranca-publica", icon: "Landmark",
+      description: "Guarda Municipal e segurança pública",
+      services: [
+        { name: "Ronda da Guarda Municipal", slug: "ronda-guarda-municipal", description: "Solicite ronda da Guarda Municipal", slaHours: 24, slaPriority: "HIGH" },
+        { name: "Vandalismo ao Patrimônio", slug: "vandalismo-patrimonio", description: "Denuncie vandalismo ao patrimônio público", slaHours: 48, slaPriority: "HIGH" },
+      ],
+    },
+    {
+      name: "Servidor Público", slug: "servidor-publico", icon: "Trophy",
+      description: "Serviços para servidores municipais",
+      services: [
+        { name: "Contracheque", slug: "contracheque-servidor", description: "Acesso e dúvidas sobre contracheque", slaHours: 120, slaPriority: "NORMAL" },
+        { name: "Licenças e Afastamentos", slug: "licenca-afastamento", description: "Solicitação de licenças", slaHours: 120, slaPriority: "NORMAL" },
+        { name: "Recadastramento", slug: "recadastramento-servidor", description: "Recadastramento anual de servidor", slaHours: 120, slaPriority: "NORMAL" },
+      ],
+    },
+    {
+      name: "Serviço Funerário", slug: "servico-funerario", icon: "Cross",
+      description: "Serviços funerários municipais",
+      services: [
+        { name: "Serviço Funerário Gratuito", slug: "servico-funerario-gratuito", description: "Serviço funerário social para famílias de baixa renda", slaHours: 24, slaPriority: "URGENT" },
+        { name: "Autorização de Sepultamento", slug: "autorizacao-sepultamento", description: "Autorização para sepultamento em cemitério municipal", slaHours: 24, slaPriority: "URGENT" },
+      ],
+    },
+    {
+      name: "Suporte Técnico e Teleatendimento", slug: "suporte-tecnico", icon: "Headphones",
+      description: "Suporte ao Portal 2909 e teleatendimento",
+      services: [
+        { name: "Suporte ao Portal 2909", slug: "suporte-portal", description: "Ajuda com o uso do portal", slaHours: 48, slaPriority: "NORMAL" },
+        { name: "Teleatendimento 2909", slug: "teleatendimento-2909", description: "Atendimento telefônico geral", slaHours: 48, slaPriority: "NORMAL" },
+      ],
+    },
+    {
+      name: "Trabalho e Emprego", slug: "trabalho-emprego", icon: "Briefcase",
+      description: "Emprego, qualificação profissional e direitos trabalhistas",
+      services: [
+        { name: "Vagas de Emprego", slug: "vagas-emprego", description: "Consulte vagas disponíveis", slaHours: 120, slaPriority: "NORMAL" },
+        { name: "Qualificação Profissional", slug: "qualificacao-profissional", description: "Cursos gratuitos de capacitação", slaHours: 120, slaPriority: "NORMAL" },
+        { name: "Carteira de Trabalho", slug: "carteira-trabalho", description: "Emissão e orientação sobre CTPS", slaHours: 120, slaPriority: "NORMAL" },
+      ],
+    },
+    {
+      name: "Transporte", slug: "transporte", icon: "Bus",
+      description: "Transporte público e mobilidade urbana",
+      services: [
+        { name: "Reclamação de Transporte", slug: "reclamacao-transporte", description: "Reclamações sobre transporte público", slaHours: 120, slaPriority: "NORMAL" },
+        { name: "Passe Livre Estudantil", slug: "passe-livre-estudantil", description: "Informações sobre passe livre", slaHours: 120, slaPriority: "NORMAL" },
+        { name: "Transporte Adaptado", slug: "transporte-adaptado", description: "Transporte para pessoas com deficiência", slaHours: 120, slaPriority: "NORMAL" },
+      ],
+    },
+    {
+      name: "Trânsito", slug: "transito", icon: "Car",
+      description: "Sinalização e semáforos",
+      services: [
+        { name: "Semáforo com Defeito", slug: "semaforo-defeito", description: "Semáforos apagados ou com mau funcionamento", slaHours: 24, slaPriority: "URGENT" },
+        { name: "Sinalização de Trânsito", slug: "sinalizacao", description: "Placas danificadas ou faltando", slaHours: 120, slaPriority: "NORMAL" },
       ],
     },
   ];
