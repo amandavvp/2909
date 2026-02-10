@@ -15,15 +15,15 @@ async function main() {
   // 1. ADMIN PADRÃO
   // =========================================================================
   console.log("👤 Criando usuário administrador...");
-  const adminPassword = await bcrypt.hash("Admin@2909", 12);
-  
+  const adminPassword = await bcrypt.hash("12345", 12);
+
   const admin = await prisma.user.upsert({
-    where: { cpf: "52998224725" },
+    where: { cpf: "10746426780" },
     update: {},
     create: {
       name: "Administrador do Sistema",
       email: "admin@belfordroxo.rj.gov.br",
-      cpf: "52998224725",
+      cpf: "10746426780",
       phone: "2126662909",
       passwordHash: adminPassword,
       role: "ADMIN",
@@ -31,7 +31,7 @@ async function main() {
       emailVerified: true,
     },
   });
-  console.log(`  ✅ Admin criado: ${admin.email} (CPF: 529.982.247-25 / Senha: Admin@2909)`);
+  console.log(`  ✅ Admin criado: ${admin.email} (CPF: 107.464.267-80 / Senha: 12345)`);
 
   // =========================================================================
   // 2. SECRETARIAS MUNICIPAIS DE BELFORD ROXO
@@ -399,8 +399,8 @@ async function main() {
   // =========================================================================
   console.log("\n🎉 Seed concluído com sucesso!\n");
   console.log("🔑 Credenciais do admin:");
-  console.log("   CPF: 529.982.247-25");
-  console.log("   Senha: Admin@2909");
+  console.log("   CPF: 107.464.267-80");
+  console.log("   Senha: 12345");
   console.log("   URL: http://localhost:3000/admin");
 }
 

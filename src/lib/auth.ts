@@ -117,7 +117,7 @@ export async function registerUser(data: {
 
     // Criar usuário com senha hasheada
     const passwordHash = await hashPassword(data.password);
-    
+
     const user = await prisma.user.create({
       data: {
         name: data.name.trim(),
@@ -307,18 +307,18 @@ export async function ensureDefaultAdmin(): Promise<void> {
   });
 
   if (!adminExists) {
-    const passwordHash = await hashPassword("Admin@2909");
+    const passwordHash = await hashPassword("12345");
     await prisma.user.create({
       data: {
         name: "Administrador",
         email: "admin@belfordroxo.rj.gov.br",
-        cpf: "52998224725",
+        cpf: "10746426780",
         passwordHash,
         role: "ADMIN",
         isActive: true,
         emailVerified: true,
       },
     });
-    console.log("✅ Admin padrão criado: CPF 529.982.247-25 / Senha Admin@2909");
+    console.log("✅ Admin padrão criado: CPF 107.464.267-80 / Senha 12345");
   }
 }
