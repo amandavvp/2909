@@ -12,6 +12,7 @@ export async function GET() {
     return NextResponse.json({ success: true, data: news });
   } catch (error) {
     console.error("Erro ao listar notícias:", error);
-    return NextResponse.json({ success: false, error: "Erro interno" }, { status: 500 });
+    // Retornar array vazio em vez de erro 500
+    return NextResponse.json({ success: true, data: [] });
   }
 }
