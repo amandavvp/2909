@@ -117,7 +117,7 @@ export default function RelatoriosPublicosPage() {
                     labelLine={false} style={{ fontSize: 11 }}>
                     {charts.byStatus.map((e, i) => <Cell key={i} fill={e.color} />)}
                   </Pie>
-                  <Tooltip formatter={(v: number) => [v, "Solicitações"]} />
+                  <Tooltip formatter={(v) => [v, "Solicitações"]} />
                   <Legend iconType="circle" wrapperStyle={{ fontSize: 12 }} />
                 </PieChart>
               </ResponsiveContainer>
@@ -131,7 +131,7 @@ export default function RelatoriosPublicosPage() {
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                   <XAxis type="number" tick={{ fontSize: 11 }} allowDecimals={false} />
                   <YAxis dataKey="name" type="category" tick={{ fontSize: 11 }} width={80} />
-                  <Tooltip formatter={(v: number) => [v, "Solicitações"]}
+                  <Tooltip formatter={(v) => [v, "Solicitações"]}
                     labelFormatter={l => charts.byDepartment.find(d => d.name === l)?.fullName || String(l)} />
                   <Bar dataKey="count" fill="#3b82f6" radius={[0, 4, 4, 0]} barSize={20} />
                 </BarChart>
@@ -155,7 +155,7 @@ export default function RelatoriosPublicosPage() {
                 <XAxis dataKey="date" tick={{ fontSize: 11 }} tickFormatter={d => { const p = d.split("-"); return `${p[2]}/${p[1]}`; }} />
                 <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
                 <Tooltip labelFormatter={d => { const p = String(d).split("-"); return `${p[2]}/${p[1]}/${p[0]}`; }}
-                  formatter={(v: number) => [v, "Solicitações"]} />
+                  formatter={(v) => [v, "Solicitações"]} />
                 <Area type="monotone" dataKey="count" stroke="#3b82f6" fill="url(#pubGrad)" strokeWidth={2} />
               </AreaChart>
             </ResponsiveContainer>
@@ -171,7 +171,7 @@ export default function RelatoriosPublicosPage() {
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                   <XAxis type="number" tick={{ fontSize: 11 }} allowDecimals={false} />
                   <YAxis dataKey="name" type="category" tick={{ fontSize: 10 }} width={120} />
-                  <Tooltip formatter={(v: number) => [v, "Solicitações"]} />
+                  <Tooltip formatter={(v) => [v, "Solicitações"]} />
                   <Bar dataKey="count" fill="#8b5cf6" radius={[0, 4, 4, 0]} barSize={20} />
                 </BarChart>
               </ResponsiveContainer>
@@ -185,7 +185,7 @@ export default function RelatoriosPublicosPage() {
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                   <XAxis type="number" tick={{ fontSize: 11 }} allowDecimals={false} />
                   <YAxis dataKey="name" type="category" tick={{ fontSize: 10 }} width={100} />
-                  <Tooltip formatter={(v: number) => [v, "Solicitações"]} />
+                  <Tooltip formatter={(v) => [v, "Solicitações"]} />
                   <Bar dataKey="count" fill="#f97316" radius={[0, 4, 4, 0]} barSize={18} />
                 </BarChart>
               </ResponsiveContainer>
