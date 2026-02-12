@@ -45,3 +45,6 @@ nul
 prisma/dev.db
 prisma/dev.db-journal
 .env
+
+# cursor
+.cursor/

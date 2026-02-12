@@ -112,7 +112,7 @@ export const serviceCategories: ServiceCategory[] = [
   {
     id: "animais",
     name: "Animais",
-    icon: "PawPrint",
+    icon: "Dog",
     slug: "animais",
     description: "Serviços relacionados a animais domésticos e fauna silvestre",
     services: [

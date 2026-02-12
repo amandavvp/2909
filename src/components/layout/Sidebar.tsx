@@ -1,49 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { serviceCategories } from "@/data/services";
-import { 
-  PawPrint, 
-  Accessibility,
-  Heart,
-  Wrench,
-  ShieldAlert,
-  GraduationCap,
-  Lightbulb,
-  Trash2,
-  Stethoscope,
-  Car,
-  MessageSquare,
-  Shield,
-  Menu,
-  Star,
-  Building2,
-  Scale,
-  Users,
-  Briefcase
-} from "lucide-react";
+import { Menu, Star, Loader2 } from "lucide-react";
+import { getCategoryIcon } from "@/lib/icons";
 
-// Mapeamento de ícones
-const iconMap: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
-  PawPrint,
-  Accessibility,
-  Heart,
-  Wrench,
-  ShieldAlert,
-  GraduationCap,
-  Lightbulb,
-  Trash2,
-  Stethoscope,
-  Car,
-  MessageSquare,
-  Shield,
-  Building2,
-  Scale,
-  Users,
-  Briefcase,
-};
+interface CategoryFromApi {
+  id: string;
+  name: string;
+  slug: string;
+  icon: string;
+  description?: string | null;
+  services: { id: string; name: string; slug: string }[];
+}
 
 interface SidebarProps {
   activeCategory?: string;
@@ -52,18 +23,32 @@ interface SidebarProps {
 export default function Sidebar({ activeCategory }: SidebarProps) {
   const [showAll, setShowAll] = useState(true);
   const pathname = usePathname();
+  const [categories, setCategories] = useState<CategoryFromApi[] | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/v1/services")
+      .then((res) => res.ok ? res.json() : null)
+      .then((json) => {
+        if (json?.success && Array.isArray(json.data)) setCategories(json.data);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const list = categories ?? serviceCategories.map((c) => ({ id: c.id, name: c.name, slug: c.slug, icon: c.icon, description: c.description ?? null, services: c.services.map((s) => ({ id: s.id, name: s.name, slug: s.slug })) }));
 
   const mostRequested = [
     { name: "Buraco na Rua", slug: "conservacao/buraco-rua", icon: "Wrench" },
-    { name: "Iluminação Pública", slug: "iluminacao-publica/iluminacao-publica", icon: "Lightbulb" },
+    { name: "Iluminação Pública", slug: "iluminacao/iluminacao-publica", icon: "Lightbulb" },
     { name: "Coleta de Lixo", slug: "limpeza-urbana/coleta-lixo", icon: "Trash2" },
     { name: "Poda de Árvore", slug: "conservacao/poda-arvore", icon: "Wrench" },
-    { name: "Foco de Dengue", slug: "saude/foco-dengue", icon: "Stethoscope" },
-    { name: "Maus Tratos a Animais", slug: "animais/maus-tratos", icon: "PawPrint" },
+    { name: "Foco de Dengue", slug: "saude/dengue", icon: "Stethoscope" },
+    { name: "Maus Tratos a Animais", slug: "animais/maus-tratos", icon: "Dog" },
   ];
 
   return (
-    <aside className="w-full lg:w-[340px] flex-shrink-0">
+    <aside className="w-full lg:w-[340px] shrink-0">
       <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
         {/* Tabs - estilo 1746 */}
         <div className="flex border-b border-gray-200">
@@ -97,36 +82,40 @@ export default function Sidebar({ activeCategory }: SidebarProps) {
         <nav className="p-3 max-h-[600px] overflow-y-auto scrollbar-thin">
           {showAll ? (
             <ul className="space-y-1">
-              {serviceCategories.map((category) => {
-                const Icon = iconMap[category.icon] || Menu;
-                const isActive = pathname === `/servicos/${category.slug}` || activeCategory === category.slug;
-                
-                return (
-                  <li key={category.id}>
-                    <Link
-                      href={`/servicos/${category.slug}`}
-                      className={`flex items-center gap-3 px-4 py-3.5 rounded-lg text-sm transition-all ${
-                        isActive
-                          ? "font-semibold"
-                          : "hover:bg-gray-50"
-                      }`}
-                      style={{ 
-                        color: '#1748ae',
-                        backgroundColor: isActive ? 'rgba(23, 72, 174, 0.08)' : undefined
-                      }}
-                    >
-                      <Icon size={22} className="flex-shrink-0 opacity-80" />
-                      <span>{category.name}</span>
-                    </Link>
-                  </li>
-                );
-              })}
+              {loading ? (
+                <li className="flex items-center justify-center py-8 text-[#1748ae]">
+                  <Loader2 size={24} className="animate-spin" aria-hidden />
+                </li>
+              ) : (
+                list.map((category) => {
+                  const Icon = getCategoryIcon(category.icon);
+                  const isActive = pathname === `/servicos/${category.slug}` || activeCategory === category.slug;
+
+                  return (
+                    <li key={category.id}>
+                      <Link
+                        href={`/servicos/${category.slug}`}
+                        className={`flex items-center gap-3 px-4 py-3.5 rounded-lg text-sm transition-all ${
+                          isActive ? "font-semibold" : "hover:bg-gray-50"
+                        }`}
+                        style={{
+                          color: "#1748ae",
+                          backgroundColor: isActive ? "rgba(23, 72, 174, 0.08)" : undefined,
+                        }}
+                      >
+                        <Icon size={22} className="shrink-0 opacity-80" />
+                        <span>{category.name}</span>
+                      </Link>
+                    </li>
+                  );
+                })
+              )}
             </ul>
           ) : (
             // Serviços mais solicitados
             <ul className="space-y-1">
               {mostRequested.map((service) => {
-                const Icon = iconMap[service.icon] || Menu;
+                const Icon = getCategoryIcon(service.icon);
                 
                 return (
                   <li key={service.slug}>
@@ -135,7 +124,7 @@ export default function Sidebar({ activeCategory }: SidebarProps) {
                       className="flex items-center gap-3 px-4 py-3.5 rounded-lg text-sm hover:bg-gray-50 transition-all"
                       style={{ color: '#1748ae' }}
                     >
-                      <Icon size={22} className="flex-shrink-0 opacity-80" />
+                      <Icon size={22} className="shrink-0 opacity-80" />
                       <span>{service.name}</span>
                     </Link>
                   </li>

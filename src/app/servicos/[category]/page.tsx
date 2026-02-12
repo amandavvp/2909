@@ -3,26 +3,23 @@ import Link from "next/link";
 import { ChevronRight, Bell } from "lucide-react";
 import Sidebar from "@/components/layout/Sidebar";
 import { getCategoryBySlug, serviceCategories } from "@/data/services";
+import { getCategoryIcon } from "@/lib/icons";
+import { getCategoryBySlugFromDb } from "@/lib/services-db";
 import type { Metadata } from "next";
 
 interface PageProps {
   params: Promise<{ category: string }>;
 }
 
-export async function generateStaticParams() {
-  return serviceCategories.map((cat) => ({
-    category: cat.slug,
-  }));
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { category } = await params;
-  const categoryData = getCategoryBySlug(category);
-  
+  const fromDb = await getCategoryBySlugFromDb(category);
+  const categoryData = fromDb ?? getCategoryBySlug(category);
+
   if (!categoryData) {
-    return {
-      title: "Categoria não encontrada",
-    };
+    return { title: "Categoria não encontrada" };
   }
 
   return {
@@ -33,11 +30,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function CategoryPage({ params }: PageProps) {
   const { category } = await params;
-  const categoryData = getCategoryBySlug(category);
+  const fromDb = await getCategoryBySlugFromDb(category);
+  const categoryData = fromDb ?? getCategoryBySlug(category);
 
   if (!categoryData) {
     notFound();
   }
+
+  const services = fromDb ? fromDb.services : (categoryData as { services: Array<{ id: string; name: string; slug: string; description?: string }> }).services;
 
   return (
     <div className="container-main py-8">
@@ -69,9 +69,15 @@ export default async function CategoryPage({ params }: PageProps) {
           {/* Título da categoria */}
           <div className="bg-white rounded-lg shadow-card border border-neutral-100 overflow-hidden">
             <div className="px-6 py-5 border-b border-neutral-100 flex items-center justify-between">
-              <h1 className="text-2xl font-bold text-neutral-800">
-                {categoryData.name}
-              </h1>
+              <div className="flex items-center gap-3">
+                {(() => {
+                  const Icon = getCategoryIcon(categoryData.icon);
+                  return <Icon size={28} className="text-[#1748ae] shrink-0" aria-hidden />;
+                })()}
+                <h1 className="text-2xl font-bold text-neutral-800">
+                  {categoryData.name}
+                </h1>
+              </div>
               <button className="flex items-center gap-2 px-4 py-2 text-sm text-primary border border-primary rounded-md hover:bg-primary hover:text-white transition-colors">
                 <Bell size={16} />
                 Seguir
@@ -80,7 +86,7 @@ export default async function CategoryPage({ params }: PageProps) {
 
             {/* Lista de serviços */}
             <div className="divide-y divide-neutral-100">
-              {categoryData.services.map((service) => (
+              {services.map((service) => (
                 <Link
                   key={service.id}
                   href={`/servicos/${category}/${service.slug}`}
@@ -104,7 +110,7 @@ export default async function CategoryPage({ params }: PageProps) {
               ))}
             </div>
 
-            {categoryData.services.length === 0 && (
+            {services.length === 0 && (
               <div className="px-6 py-12 text-center text-neutral-500">
                 <p>Nenhum serviço cadastrado nesta categoria.</p>
               </div>

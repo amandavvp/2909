@@ -3,21 +3,8 @@ import type { NextConfig } from "next";
 // =============================================================================
 // Configuração do Next.js - Portal 2909
 // =============================================================================
-// Otimizações de performance:
-// - Compressão de imagens com sharp
-// - Headers de cache para assets estáticos
-// - Política de segurança CSP
-// =============================================================================
 
 const nextConfig: NextConfig = {
-  // Resolver conflito de workspace root com lockfile na pasta do usuário
-  turbopack: {
-    root: __dirname || process.cwd(),
-    resolveAlias: {
-      // Garante resolução correta de tailwindcss dentro do projeto
-      "tailwindcss": "./node_modules/tailwindcss",
-    },
-  },
   // Otimização de imagens
   images: {
     formats: ["image/avif", "image/webp"],

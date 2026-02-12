@@ -2,36 +2,23 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ChevronRight, Clock, BookOpen, Users, Info, FileText, Scale } from "lucide-react";
 import Sidebar from "@/components/layout/Sidebar";
-import { getServiceBySlug, serviceCategories, getCategoryBySlug } from "@/data/services";
+import { getServiceBySlug, getCategoryBySlug } from "@/data/services";
+import { getServiceBySlugsFromDb } from "@/lib/services-db";
 import type { Metadata } from "next";
 
 interface PageProps {
   params: Promise<{ category: string; service: string }>;
 }
 
-export async function generateStaticParams() {
-  const params: { category: string; service: string }[] = [];
-  
-  serviceCategories.forEach((cat) => {
-    cat.services.forEach((service) => {
-      params.push({
-        category: cat.slug,
-        service: service.slug,
-      });
-    });
-  });
-  
-  return params;
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { category, service } = await params;
-  const serviceData = getServiceBySlug(category, service);
-  
+  const fromDb = await getServiceBySlugsFromDb(category, service);
+  const serviceData = fromDb ?? getServiceBySlug(category, service);
+
   if (!serviceData) {
-    return {
-      title: "Serviço não encontrado",
-    };
+    return { title: "Serviço não encontrado" };
   }
 
   return {
@@ -40,16 +27,27 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
+type DetailedInfo = {
+  oQueE?: string;
+  paraQueServe?: string;
+  quemPodeSolicitar?: string;
+  informacoesComplementares?: string;
+  informacoesNecessarias?: string[];
+  tempoAtendimento?: string;
+  legislacao?: string[];
+};
+
 export default async function ServicePage({ params }: PageProps) {
   const { category, service } = await params;
-  const categoryData = getCategoryBySlug(category);
-  const serviceData = getServiceBySlug(category, service);
+  const fromDb = await getServiceBySlugsFromDb(category, service);
+  const serviceData = fromDb ?? getServiceBySlug(category, service);
+  const categoryData = fromDb?.category ? { name: fromDb.category.name, slug: fromDb.category.slug } : getCategoryBySlug(category);
 
   if (!categoryData || !serviceData) {
     notFound();
   }
 
-  const detailedInfo = serviceData.detailedInfo;
+  const detailedInfo = (serviceData.detailedInfo ?? (serviceData as { detailedInfo?: DetailedInfo }).detailedInfo) as DetailedInfo | undefined;
 
   return (
     <div className="container-main py-8">
@@ -89,7 +87,7 @@ export default async function ServicePage({ params }: PageProps) {
 
           {/* Detalhes do serviço */}
           <div className="bg-white rounded-lg shadow-card border border-neutral-100 overflow-hidden">
-            <div className="px-6 py-5 border-b border-neutral-100 bg-gradient-to-r from-primary/5 to-transparent">
+            <div className="px-6 py-5 border-b border-neutral-100 bg-linear-to-r from-primary/5 to-transparent">
               <h1 className="text-2xl font-bold text-neutral-800">
                 {serviceData.name}
               </h1>
@@ -145,6 +143,7 @@ export default async function ServicePage({ params }: PageProps) {
                   )}
 
                   {/* Informações necessárias */}
+                  {detailedInfo.informacoesNecessarias && detailedInfo.informacoesNecessarias.length > 0 && (
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-primary">
                       <FileText size={20} />
@@ -156,6 +155,7 @@ export default async function ServicePage({ params }: PageProps) {
                       ))}
                     </ul>
                   </div>
+                  )}
 
                   {/* Tempo para atendimento */}
                   <div className="space-y-2">
