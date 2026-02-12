@@ -5,6 +5,8 @@ import type { NextConfig } from "next";
 // =============================================================================
 
 const nextConfig: NextConfig = {
+  // Output standalone para deploy em containers (Railway, Docker)
+  output: "standalone",
   // Otimização de imagens
   images: {
     formats: ["image/avif", "image/webp"],
