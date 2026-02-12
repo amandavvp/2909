@@ -22,7 +22,21 @@ import {
   Building2,
   Scale,
   Users,
-  Briefcase
+  Briefcase,
+  TreePine,
+  Palette,
+  Bus,
+  Receipt,
+  Rainbow,
+  UserCircle,
+  HardHat,
+  ShieldCheck,
+  FileText,
+  ShieldHalf,
+  Landmark,
+  Trophy,
+  Cross,
+  Headphones,
 } from "lucide-react";
 
 // Mapeamento de ícones
@@ -43,6 +57,20 @@ const iconMap: Record<string, React.ComponentType<{ size?: number; className?: s
   Scale,
   Users,
   Briefcase,
+  TreePine,
+  Palette,
+  Bus,
+  Receipt,
+  Rainbow,
+  UserCircle,
+  HardHat,
+  ShieldCheck,
+  FileText,
+  ShieldHalf,
+  Landmark,
+  Trophy,
+  Cross,
+  Headphones,
 };
 
 interface SidebarProps {
@@ -148,3 +176,5 @@ export default function Sidebar({ activeCategory }: SidebarProps) {
     </aside>
   );
 }
+
+

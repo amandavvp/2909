@@ -513,7 +513,110 @@ export const serviceCategories: ServiceCategory[] = [
   },
 
   // =========================================================================
-  // 6. Cultura, Esporte e Lazer
+  // 6. Meio Ambiente
+  // =========================================================================
+  {
+    id: "meio-ambiente",
+    name: "Meio Ambiente",
+    icon: "TreePine",
+    slug: "meio-ambiente",
+    description: "Serviços relacionados à preservação ambiental e sustentabilidade",
+    services: [
+      {
+        id: "poluicao-ambiental",
+        name: "Poluição Ambiental",
+        slug: "poluicao-ambiental",
+        categoryId: "meio-ambiente",
+        description: "Denúncia de poluição do ar, água, solo ou descarte irregular",
+        requiresAuth: false,
+        detailedInfo: {
+          oQueE: "Serviço para registrar denúncias de poluição ambiental no município de Belford Roxo, incluindo descarte irregular de resíduos, emissão de fumaça tóxica, poluição sonora e contaminação de cursos d'água.",
+          paraQueServe: "Permitir que a Prefeitura identifique e fiscalize atividades que causem danos ambientais, promovendo ações corretivas e responsabilização quando necessário.",
+          quemPodeSolicitar: "Qualquer cidadão pode registrar denúncias de poluição ambiental.",
+          informacoesComplementares: "Forneça o máximo de detalhes possíveis para facilitar a fiscalização. Denúncias podem ser feitas de forma anônima.",
+          informacoesNecessarias: [
+            "Endereço completo da ocorrência",
+            "Descrição detalhada da poluição observada",
+            "Data e horário aproximado da ocorrência",
+            "Fotos ou vídeos (opcional)"
+          ],
+          tempoAtendimento: "Até 5 dias úteis para vistoria inicial",
+          legislacao: [
+            "Lei Federal nº 6.938/1981 (Política Nacional do Meio Ambiente)",
+            "Lei Federal nº 9.605/1998 (Crimes Ambientais)"
+          ]
+        },
+        fields: [
+          { id: "description", name: "description", label: "Descrição da ocorrência", type: "textarea", required: true, placeholder: "Descreva o tipo de poluição e os impactos observados" },
+          { id: "address", name: "address", label: "Local da ocorrência", type: "address", required: true },
+          { id: "attachment", name: "attachment", label: "Fotos ou vídeos", type: "file", required: false }
+        ]
+      },
+      {
+        id: "desmatamento-irregular",
+        name: "Desmatamento Irregular",
+        slug: "desmatamento-irregular",
+        categoryId: "meio-ambiente",
+        description: "Denúncia de corte irregular de árvores e supressão de vegetação",
+        requiresAuth: false,
+        detailedInfo: {
+          oQueE: "Serviço para denunciar cortes de árvores, queimadas e supressão de vegetação sem autorização em áreas públicas ou de preservação no município.",
+          paraQueServe: "Contribuir para a proteção da cobertura vegetal e para a prevenção de danos ambientais e riscos à população.",
+          quemPodeSolicitar: "Qualquer cidadão pode fazer a denúncia.",
+          informacoesComplementares: "Quando possível, informe ponto de referência e anexe imagens para facilitar a ação das equipes de fiscalização.",
+          informacoesNecessarias: [
+            "Endereço ou referência do local",
+            "Descrição da atividade observada",
+            "Informação se a ação está em andamento",
+            "Fotos ou vídeos (opcional)"
+          ],
+          tempoAtendimento: "Até 72 horas para análise e encaminhamento",
+          legislacao: [
+            "Lei Federal nº 12.651/2012 (Código Florestal)",
+            "Lei Federal nº 9.605/1998 (Crimes Ambientais)"
+          ]
+        },
+        fields: [
+          { id: "description", name: "description", label: "Descrição da denúncia", type: "textarea", required: true, placeholder: "Descreva o desmatamento ou corte irregular observado" },
+          { id: "address", name: "address", label: "Local", type: "address", required: true },
+          { id: "attachment", name: "attachment", label: "Evidências (fotos/vídeos)", type: "file", required: false }
+        ]
+      },
+      {
+        id: "queimada-urbana",
+        name: "Queimada em Área Urbana",
+        slug: "queimada-urbana",
+        categoryId: "meio-ambiente",
+        description: "Denúncia de queimadas em terrenos, áreas verdes e vias públicas",
+        requiresAuth: false,
+        detailedInfo: {
+          oQueE: "Serviço para denúncia de queimadas em áreas urbanas, terrenos baldios e áreas verdes do município de Belford Roxo.",
+          paraQueServe: "Reduzir riscos à saúde pública, prevenir incêndios e proteger o meio ambiente e a segurança da população.",
+          quemPodeSolicitar: "Qualquer cidadão pode registrar a denúncia.",
+          informacoesComplementares: "Em caso de fogo ativo com risco imediato, acione também o Corpo de Bombeiros (193).",
+          informacoesNecessarias: [
+            "Endereço exato da queimada",
+            "Se o fogo está ativo no momento",
+            "Proximidade de casas, escolas ou hospitais",
+            "Fotos ou vídeos (opcional)"
+          ],
+          tempoAtendimento: "Atendimento prioritário em até 24 horas",
+          legislacao: [
+            "Lei Federal nº 9.605/1998 (Crimes Ambientais)",
+            "Código Municipal de Meio Ambiente"
+          ]
+        },
+        fields: [
+          { id: "description", name: "description", label: "Descrição", type: "textarea", required: true, placeholder: "Informe detalhes da queimada e riscos no local" },
+          { id: "address", name: "address", label: "Endereço", type: "address", required: true },
+          { id: "attachment", name: "attachment", label: "Fotos", type: "file", required: false }
+        ]
+      }
+    ]
+  },
+
+  // =========================================================================
+  // 7. Cultura, Esporte e Lazer
   // =========================================================================
   {
     id: "cultura-esporte-lazer",
