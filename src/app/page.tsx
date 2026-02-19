@@ -103,7 +103,7 @@ export default function Home() {
 
             <div className="relative px-6 md:px-8 py-8 md:py-10 text-center">
               <Link
-                href="/cartilha-cidadao.pdf"
+                href="/cartilha"
                 className="cartilha-btn inline-flex items-center gap-3 px-6 md:px-8 py-3 md:py-4 text-white font-bold rounded-lg transition-colors shadow-lg text-sm md:text-base"
               >
                 <Download size={20} aria-hidden="true" />
