@@ -143,7 +143,6 @@ export default async function ServicePage({ params }: PageProps) {
                   )}
 
                   {/* Informações necessárias */}
-                  {detailedInfo.informacoesNecessarias && detailedInfo.informacoesNecessarias.length > 0 && (
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-primary">
                       <FileText size={20} />
@@ -155,7 +154,6 @@ export default async function ServicePage({ params }: PageProps) {
                       ))}
                     </ul>
                   </div>
-                  )}
 
                   {/* Tempo para atendimento */}
                   <div className="space-y-2">

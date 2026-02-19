@@ -4,8 +4,7 @@ import {
   Instagram, 
   Facebook, 
   Youtube, 
-  Linkedin,
-  MessageCircle
+  Linkedin
 } from "lucide-react";
 
 // Ícone do X (antigo Twitter)
@@ -177,17 +176,6 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* Botão WhatsApp fixo */}
-      <a
-        href="https://wa.me/5521266629009"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="fixed bottom-6 right-20 w-14 h-14 bg-[#25D366] hover:bg-[#128C7E] rounded-full flex items-center justify-center shadow-lg transition-colors z-40"
-        title="Fale conosco pelo WhatsApp"
-        aria-label="WhatsApp"
-      >
-        <MessageCircle size={28} className="text-white" />
-      </a>
     </footer>
   );
 }

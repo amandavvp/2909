@@ -1,11 +1,11 @@
 {
-  "$schema": "https://railway.app/railway.schema.json",
+  "$schema": "https://railway.com/railway.schema.json",
   "build": {
     "builder": "NIXPACKS",
-    "buildCommand": "npx prisma generate && npx prisma db push && npx prisma db seed && NODE_OPTIONS='--max-old-space-size=1024' npx next build"
+    "buildCommand": "npx prisma generate && npx prisma db push && npm run db:seed && next build"
   },
   "deploy": {
-    "startCommand": "cp -r public .next/standalone/ && cp -r .next/static .next/standalone/.next/ && node .next/standalone/server.js",
+    "startCommand": "node .next/standalone/server.js",
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10
   }

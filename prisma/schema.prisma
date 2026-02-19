@@ -2,16 +2,13 @@
 // Portal 2909 - Schema do Banco de Dados
 // Prefeitura Municipal de Belford Roxo
 // =============================================================================
-// Ambiente de desenvolvimento: SQLite (zero configuração)
-// Produção: Trocar para PostgreSQL alterando provider e DATABASE_URL
-// =============================================================================
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
