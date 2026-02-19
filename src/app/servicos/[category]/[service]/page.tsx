@@ -149,7 +149,7 @@ export default async function ServicePage({ params }: PageProps) {
                       <h2 className="font-bold text-lg">Informações necessárias:</h2>
                     </div>
                     <ul className="list-disc list-inside space-y-1 text-neutral-700 pl-7">
-                      {detailedInfo.informacoesNecessarias.map((info, index) => (
+                      {detailedInfo.informacoesNecessarias?.map((info, index) => (
                         <li key={index}>{info}</li>
                       ))}
                     </ul>
