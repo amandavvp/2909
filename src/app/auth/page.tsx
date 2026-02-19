@@ -109,9 +109,12 @@ export default function AuthPage() {
       });
       
       if (response.ok) {
-        // Redirecionar para URL de retorno se especificada (ex: /admin)
+        const data = await response.json();
         const params = new URLSearchParams(window.location.search);
-        const redirectTo = params.get("redirect") || "/";
+        const redirectParam = params.get("redirect");
+        const userRole = data.data?.user?.role;
+        const isStaff = ["ADMIN", "MANAGER", "ANALYST", "ATTENDANT"].includes(userRole);
+        const redirectTo = redirectParam || (isStaff ? "/admin" : "/");
         window.location.href = redirectTo;
       } else {
         const data = await response.json();
