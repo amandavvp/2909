@@ -4,7 +4,7 @@
 
 import prisma from "./db";
 import { generateProtocol } from "./utils";
-import type { RequestFilters, DashboardStats, PaginatedResponse } from "@/types";
+import type { Filters, DashboardStats, PaginatedResponse } from "@/types";
 
 const SLA_HOURS_BY_PRIORITY: Record<string, number> = {
   LOW: 240,
@@ -17,7 +17,7 @@ const SLA_HOURS_BY_PRIORITY: Record<string, number> = {
 // CRIAR SOLICITAÇÃO
 // =============================================================================
 
-export async function createRequest(data: {
+export async function create(data: {
   userId?: string;
   serviceId: string;
   description: string;
@@ -51,7 +51,7 @@ export async function createRequest(data: {
     // Auto-atribuir secretaria responsável baseada na categoria
     const departmentId = service.category.departmentId || null;
 
-    const request = await prisma.serviceRequest.create({
+    const req = await prisma.serviceRequest.create({
       data: {
         protocol,
         userId: data.isAnonymous ? null : (data.userId || null),
@@ -91,8 +91,8 @@ export async function createRequest(data: {
       data: {
         userId: data.userId || null,
         action: "CREATE",
-        entity: "service_requests",
-        entityId: request.id,
+        entity: "service_s",
+        entityId: req.id,
         newValues: JSON.stringify({ protocol, serviceId: data.serviceId, origin: data.origin || "PORTAL" }),
       },
     });
@@ -108,7 +108,7 @@ export async function createRequest(data: {
 // BUSCAR SOLICITAÇÃO POR PROTOCOLO
 // =============================================================================
 
-export async function getRequestByProtocol(protocol: string) {
+export async function getByProtocol(protocol: string) {
   return prisma.serviceRequest.findUnique({
     where: { protocol: protocol.toUpperCase() },
     include: {
@@ -132,26 +132,26 @@ export async function getRequestByProtocol(protocol: string) {
 // BUSCAR SOLICITAÇÃO POR PROTOCOLO (VERSÃO PÚBLICA - LGPD)
 // =============================================================================
 
-export async function getPublicRequestByProtocol(protocol: string) {
-  const request = await getRequestByProtocol(protocol);
-  if (!request) return null;
+export async function getPublicByProtocol(protocol: string) {
+  const req = await getByProtocol(protocol);
+  if (!req) return null;
 
   return {
-    protocol: request.protocol,
-    serviceName: request.service.name,
-    categoryName: request.service.category.name,
-    status: request.status,
-    description: request.description,
-    address: request.address ? {
-      neighborhood: request.address.neighborhood,
-      city: request.address.city,
+    protocol: req.protocol,
+    serviceName: req.service.name,
+    categoryName: req.service.category.name,
+    status: req.status,
+    description: req.description,
+    address: req.address ? {
+      neighborhood: req.address.neighborhood,
+      city: req.address.city,
     } : null,
-    createdAt: request.createdAt,
-    updatedAt: request.updatedAt,
-    resolvedAt: request.resolvedAt,
-    slaDeadline: request.slaDeadline,
-    slaBreached: request.slaBreached,
-    history: request.history
+    createdAt: req.createdAt,
+    updatedAt: req.updatedAt,
+    resolvedAt: req.resolvedAt,
+    slaDeadline: req.slaDeadline,
+    slaBreached: req.slaBreached,
+    history: req.history
       .filter(h => h.isPublic)
       .map(h => ({
         status: h.toStatus,
@@ -165,7 +165,7 @@ export async function getPublicRequestByProtocol(protocol: string) {
 // LISTAR SOLICITAÇÕES COM FILTROS (ADMIN)
 // =============================================================================
 
-export async function listRequests(filters: RequestFilters): Promise<PaginatedResponse<unknown>> {
+export async function lists(filters: Filters): Promise<PaginatedResponse<unknown>> {
   const page = filters.page || 1;
   const limit = filters.limit || 20;
   const skip = (page - 1) * limit;
@@ -228,7 +228,7 @@ export async function listRequests(filters: RequestFilters): Promise<PaginatedRe
 // ATUALIZAR STATUS
 // =============================================================================
 
-export async function updateRequestStatus(
+export async function updateStatus(
   protocol: string,
   status: string,
   message: string,
@@ -237,13 +237,13 @@ export async function updateRequestStatus(
   isPublic = true
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const request = await prisma.serviceRequest.findUnique({ where: { protocol } });
+    const req = await prisma.serviceRequest.findUnique({ where: { protocol } });
 
-    if (!request) {
+    if (!req) {
       return { success: false, error: "Solicitação não encontrada" };
     }
 
-    const oldStatus = request.status;
+    const oldStatus = req.status;
 
     if (!isValidStatusTransition(oldStatus, status)) {
       return { success: false, error: `Transição de ${oldStatus} para ${status} não é permitida` };
@@ -260,7 +260,7 @@ export async function updateRequestStatus(
       }),
       prisma.requestHistory.create({
         data: {
-          requestId: request.id,
+          requestId: req.id,
           fromStatus: oldStatus,
           toStatus: status,
           message,
@@ -273,8 +273,8 @@ export async function updateRequestStatus(
         data: {
           userId,
           action: "STATUS_CHANGE",
-          entity: "service_requests",
-          entityId: request.id,
+          entity: "service_s",
+          entityId: req.id,
           oldValues: JSON.stringify({ status: oldStatus }),
           newValues: JSON.stringify({ status }),
         },
@@ -319,9 +319,9 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
   const [
-    totalRequests, pendingRequests, inProgressRequests, resolvedRequests,
-    closedRequests, cancelledRequests, slaBreached,
-    todayRequests, weekRequests, monthRequests, resolvedWithTime,
+    totals, pendings, inProgresss, resolveds,
+    closeds, cancelleds, slaBreached,
+    todays, weeks, months, resolvedWithTime,
   ] = await Promise.all([
     prisma.serviceRequest.count(),
     prisma.serviceRequest.count({ where: { status: "PENDING" } }),
@@ -353,9 +353,9 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   }
 
   return {
-    totalRequests, pendingRequests, inProgressRequests, resolvedRequests,
-    closedRequests, cancelledRequests, slaBreached, avgResolutionHours,
-    todayRequests, weekRequests, monthRequests,
+    totals, pendings, inProgresss, resolveds,
+    closeds, cancelleds, slaBreached, avgResolutionHours,
+    todays, weeks, months,
   };
 }
 
@@ -363,7 +363,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
 // DADOS PARA GRÁFICOS
 // =============================================================================
 
-export async function getRequestsByStatusChart() {
+export async function getsByStatusChart() {
   const statusColors: Record<string, string> = {
     PENDING: "#eab308", IN_PROGRESS: "#3b82f6", WAITING_INFO: "#f97316",
     FORWARDED: "#8b5cf6", RESOLVED: "#22c55e", CLOSED: "#6b7280",
@@ -388,18 +388,18 @@ export async function getRequestsByStatusChart() {
   }));
 }
 
-export async function getRequestsByPeriod(days = 30) {
+export async function getsByPeriod(days = 30) {
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - days);
 
-  const requests = await prisma.serviceRequest.findMany({
+  const s = await prisma.serviceRequest.findMany({
     where: { createdAt: { gte: startDate } },
     select: { createdAt: true },
     orderBy: { createdAt: "asc" },
   });
 
   const grouped: Record<string, number> = {};
-  requests.forEach(r => {
+  s.forEach(r => {
     const date = r.createdAt.toISOString().split("T")[0];
     grouped[date] = (grouped[date] || 0) + 1;
   });
@@ -407,7 +407,7 @@ export async function getRequestsByPeriod(days = 30) {
   return Object.entries(grouped).map(([date, count]) => ({ date, count }));
 }
 
-export async function getRequestsByCategory() {
+export async function getsByCategory() {
   const results = await prisma.serviceRequest.groupBy({
     by: ["serviceId"],
     _count: { id: true },
@@ -430,7 +430,7 @@ export async function getRequestsByCategory() {
   });
 }
 
-export async function getRequestsByNeighborhood() {
+export async function getsByNeighborhood() {
   const addresses = await prisma.address.findMany({
     where: { requestId: { not: null } },
     select: { neighborhood: true },

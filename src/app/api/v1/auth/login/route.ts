@@ -36,8 +36,8 @@ export async function POST(request: NextRequest) {
 
     // Metadados da requisição
     const metadata = {
-      ipAddress: request.headers.get("x-forwarded-for") || 
-                 request.headers.get("x-real-ip") || undefined,
+      ipAddress: request.headers.get("x-forwarded-for") ||
+        request.headers.get("x-real-ip") || undefined,
       userAgent: request.headers.get("user-agent") || undefined,
     };
 
@@ -53,7 +53,10 @@ export async function POST(request: NextRequest) {
     // Definir cookie httpOnly com o token
     const response = NextResponse.json({
       success: true,
-      data: { user: result.user },
+      data: {
+        token: result.token,   // ← adicionado
+        user: result.user,
+      },
       message: "Login realizado com sucesso",
     });
 
